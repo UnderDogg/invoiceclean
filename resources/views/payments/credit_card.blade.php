@@ -23,7 +23,7 @@
                 'postal_code',
                 'country_id',
             ]
-            $.each(fields, function(i, field) {
+            $.each(fields, function (i, field) {
                 $('#shipping_' + field).val($('#' + field).val());
             })
             $('#shipping_country_id').combobox('refresh');
@@ -38,15 +38,15 @@
                 'postal_code',
                 'country_id',
             ]
-            $.each(fields, function(i, field) {
+            $.each(fields, function (i, field) {
                 $('#shipping_' + field).val('');
             })
             $('#shipping_country_id').combobox('toggle');
             $('#shipping_address1').focus();
         }
 
-        $(function() {
-            $('.payment-form').submit(function(event) {
+        $(function () {
+            $('.payment-form').submit(function (event) {
                 var $form = $(this);
 
                 if ($form.find('button').is(':disabled')) {
@@ -60,7 +60,7 @@
                 return true;
             });
 
-            $('#shipToBillingAddress').click(function() {
+            $('#shipToBillingAddress').click(function () {
                 var checked = $('#shipToBillingAddress').is(':checked');
                 $('.shipping-address input').prop('readonly', checked);
                 if (checked) {
@@ -70,48 +70,48 @@
                 }
             })
 
-            $('.billing-address').change(function() {
+            $('.billing-address').change(function () {
                 if ($('#shipToBillingAddress').is(':checked')) {
                     copyBillingAddress();
                 }
             });
 
             @if ($accountGateway->gateway_id != GATEWAY_BRAINTREE)
-                if ($('#card_number').length) {
-                    var card = new Card({
-                        form: 'form#payment-form', // *required*
-                        container: '.card-wrapper', // *required*
+            if ($('#card_number').length) {
+                var card = new Card({
+                    form: 'form#payment-form', // *required*
+                    container: '.card-wrapper', // *required*
 
-                        formSelectors: {
-                            numberInput: 'input#card_number', // optional — default input[name="number"]
-                            expiryInput: 'input#expiry', // optional — default input[name="expiry"]
-                            cvcInput: 'input#cvv', // optional — default input[name="cvc"]
-                            nameInput: 'input#first_name, input#last_name'
-                        },
+                    formSelectors: {
+                        numberInput: 'input#card_number', // optional — default input[name="number"]
+                        expiryInput: 'input#expiry', // optional — default input[name="expiry"]
+                        cvcInput: 'input#cvv', // optional — default input[name="cvc"]
+                        nameInput: 'input#first_name, input#last_name'
+                    },
 
-                        //width: 100, // optional — default 350px
-                        formatting: true, // optional - default true
+                    //width: 100, // optional — default 350px
+                    formatting: true, // optional - default true
 
-                        // Strings for translation - optional
-                        messages: {
-                            monthYear: "{{ trans('texts.month_year') }}",
-                            validDate: "{{ trans('texts.valid_thru') }}",
-                        },
+                    // Strings for translation - optional
+                    messages: {
+                        monthYear: "{{ trans('texts.month_year') }}",
+                        validDate: "{{ trans('texts.valid_thru') }}",
+                    },
 
-                        // Default placeholders for rendered fields - optional
-                        placeholders: {
-                            number: '•••• •••• •••• ••••',
-                            name: "{{ $client ? ($contact->first_name . ' ' . $contact->last_name) : trans('texts.full_name') }}",
-                            expiry: '••/••',
-                            cvc: '•••'
-                        },
+                    // Default placeholders for rendered fields - optional
+                    placeholders: {
+                        number: '•••• •••• •••• ••••',
+                        name: "{{ $client ? ($contact->first_name . ' ' . $contact->last_name) : trans('texts.full_name') }}",
+                        expiry: '••/••',
+                        cvc: '•••'
+                    },
 
-                        masks: {
-                            cardNumber: '•' // optional - mask card number
-                        },
-                        debug: true,
-                    });
-                }
+                    masks: {
+                        cardNumber: '•' // optional - mask card number
+                    },
+                    debug: true,
+                });
+            }
             @endif
         });
     </script>
@@ -173,7 +173,7 @@
         {{ Former::populateField('country_id', 840) }}
 
         <script>
-            $(function() {
+            $(function () {
                 $('#card_number').val('4242424242424242');
                 $('#cvv').val('1234');
                 $('#expiration_month').val(1);
@@ -211,7 +211,8 @@
     </div>
 
     @if (!empty($accountGateway->show_address))
-        <h3>{{ trans('texts.billing_address') }} &nbsp;&nbsp; <span class="help">{{ trans('texts.payment_footer1') }}</span></h3>
+        <h3>{{ trans('texts.billing_address') }} &nbsp;&nbsp; <span
+                    class="help">{{ trans('texts.payment_footer1') }}</span></h3>
         <hr class="form-legend"/>
 
         <div style="padding-bottom: 22px;" class="billing-address">
@@ -331,7 +332,8 @@
                     @if (isset($acceptedCreditCardTypes))
                         &nbsp;
                         @foreach ($acceptedCreditCardTypes as $card)
-                            <img src="{{ $card['source'] }}" alt="{{ $card['alt'] }}" style="width: 34px; display: inline; margin-left: 7px;"/>
+                            <img src="{{ $card['source'] }}" alt="{{ $card['alt'] }}"
+                                 style="width: 34px; display: inline; margin-left: 7px;"/>
                         @endforeach
                     @endif
                     <br/>
@@ -418,8 +420,11 @@
 
                         <div class="col-md-12">
                             @if (isset($amount) && $client && $account->showTokenCheckbox($storageGateway/* will contain gateway id */))
-                                <input id="token_billing" type="checkbox" name="token_billing" {{ $account->selectTokenCheckbox() ? 'CHECKED' : '' }} value="1" style="margin-left:0px; vertical-align:top">
-                                <label for="token_billing" class="checkbox" style="display: inline;">{{ trans('texts.token_billing') }}</label>
+                                <input id="token_billing" type="checkbox" name="token_billing"
+                                       {{ $account->selectTokenCheckbox() ? 'CHECKED' : '' }} value="1"
+                                       style="margin-left:0px; vertical-align:top">
+                                <label for="token_billing" class="checkbox"
+                                       style="display: inline;">{{ trans('texts.token_billing') }}</label>
                                 <span class="help-block" style="font-size:15px">
                                     @if ($storageGateway == GATEWAY_STRIPE)
                                         {!! trans('texts.token_billing_secure', ['link' => link_to('https://stripe.com/', 'Stripe.com', ['target' => '_blank'])]) !!}

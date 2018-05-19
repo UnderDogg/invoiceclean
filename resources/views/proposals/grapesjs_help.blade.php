@@ -4,13 +4,14 @@
 
 <script>
 
-function showProposalHelp() {
-    $('#proposalHelpModal').modal('show');
-}
+    function showProposalHelp() {
+        $('#proposalHelpModal').modal('show');
+    }
 
 </script>
 
-<div class="modal fade" id="proposalHelpModal" tabindex="-1" role="dialog" aria-labelledby="proposalHelpModalLabel" aria-hidden="true">
+<div class="modal fade" id="proposalHelpModal" tabindex="-1" role="dialog" aria-labelledby="proposalHelpModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog" style="text-align:left">
         <div class="modal-content">
             <div class="modal-header">
@@ -28,7 +29,7 @@ function showProposalHelp() {
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{{ trans('texts.close') }}</button>
-                <!-- <a class="btn btn-primary" href="{{ config('ninja.video_urls.custom_design') }}" target="_blank">{{ trans('texts.video') }}</a> -->
+            <!-- <a class="btn btn-primary" href="{{ config('ninja.video_urls.custom_design') }}" target="_blank">{{ trans('texts.video') }}</a> -->
             </div>
 
         </div>

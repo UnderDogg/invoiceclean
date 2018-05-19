@@ -2,18 +2,18 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SendInvoiceEmail;
 use App\Models\Account;
 use App\Models\Invoice;
 use App\Models\RecurringExpense;
 use App\Ninja\Repositories\InvoiceRepository;
 use App\Ninja\Repositories\RecurringExpenseRepository;
 use App\Services\PaymentService;
-use App\Jobs\SendInvoiceEmail;
+use Auth;
 use DateTime;
+use Exception;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
-use Auth;
-use Exception;
 use Utils;
 
 /**
@@ -45,10 +45,13 @@ class SendRecurringInvoices extends Command
      * SendRecurringInvoices constructor.
      *
      * @param InvoiceRepository $invoiceRepo
-     * @param PaymentService    $paymentService
+     * @param PaymentService $paymentService
      */
-    public function __construct(InvoiceRepository $invoiceRepo, PaymentService $paymentService, RecurringExpenseRepository $recurringExpenseRepo)
-    {
+    public function __construct(
+        InvoiceRepository $invoiceRepo,
+        PaymentService $paymentService,
+        RecurringExpenseRepository $recurringExpenseRepo
+    ) {
         parent::__construct();
 
         $this->invoiceRepo = $invoiceRepo;
@@ -88,7 +91,8 @@ class SendRecurringInvoices extends Command
         $today = new DateTime();
 
         $invoices = Invoice::with('account.timezone', 'invoice_items', 'client', 'user')
-            ->whereRaw('is_deleted IS FALSE AND deleted_at IS NULL AND is_recurring IS TRUE AND is_public IS TRUE AND frequency_id > 0 AND start_date <= ? AND (end_date IS NULL OR end_date >= ?)', [$today, $today])
+            ->whereRaw('is_deleted IS FALSE AND deleted_at IS NULL AND is_recurring IS TRUE AND is_public IS TRUE AND frequency_id > 0 AND start_date <= ? AND (end_date IS NULL OR end_date >= ?)',
+                [$today, $today])
             ->orderBy('id', 'asc')
             ->get();
         $this->info(date('r ') . $invoices->count() . ' recurring invoice(s) found');
@@ -96,11 +100,11 @@ class SendRecurringInvoices extends Command
         foreach ($invoices as $recurInvoice) {
             $shouldSendToday = $recurInvoice->shouldSendToday();
 
-            if (! $shouldSendToday) {
+            if (!$shouldSendToday) {
                 continue;
             }
 
-            $this->info(date('r') . ' Processing Invoice: '. $recurInvoice->id);
+            $this->info(date('r') . ' Processing Invoice: ' . $recurInvoice->id);
 
             $account = $recurInvoice->account;
             $account->loadLocalizationSettings($recurInvoice->client);
@@ -108,7 +112,7 @@ class SendRecurringInvoices extends Command
 
             try {
                 $invoice = $this->invoiceRepo->createRecurringInvoice($recurInvoice);
-                if ($invoice && ! $invoice->isPaid() && $account->auto_email_invoice) {
+                if ($invoice && !$invoice->isPaid() && $account->auto_email_invoice) {
                     $this->info(date('r') . ' Not billed - Sending Invoice');
                     dispatch(new SendInvoiceEmail($invoice, $invoice->user_id));
                 } elseif ($invoice) {
@@ -127,7 +131,8 @@ class SendRecurringInvoices extends Command
     {
         $today = new DateTime();
 
-        $delayedAutoBillInvoices = Invoice::with('account.timezone', 'recurring_invoice', 'invoice_items', 'client', 'user')
+        $delayedAutoBillInvoices = Invoice::with('account.timezone', 'recurring_invoice', 'invoice_items', 'client',
+            'user')
             ->whereRaw('is_deleted IS FALSE AND deleted_at IS NULL AND is_recurring IS FALSE AND is_public IS TRUE
             AND balance > 0 AND due_date = ? AND recurring_invoice_id IS NOT NULL',
                 [$today->format('Y-m-d')])
@@ -155,19 +160,20 @@ class SendRecurringInvoices extends Command
         $today = new DateTime();
 
         $expenses = RecurringExpense::with('client')
-                        ->whereRaw('is_deleted IS FALSE AND deleted_at IS NULL AND start_date <= ? AND (end_date IS NULL OR end_date >= ?)', [$today, $today])
-                        ->orderBy('id', 'asc')
-                        ->get();
+            ->whereRaw('is_deleted IS FALSE AND deleted_at IS NULL AND start_date <= ? AND (end_date IS NULL OR end_date >= ?)',
+                [$today, $today])
+            ->orderBy('id', 'asc')
+            ->get();
         $this->info(date('r ') . $expenses->count() . ' recurring expenses(s) found');
 
         foreach ($expenses as $expense) {
             $shouldSendToday = $expense->shouldSendToday();
 
-            if (! $shouldSendToday) {
+            if (!$shouldSendToday) {
                 continue;
             }
 
-            $this->info(date('r') . ' Processing Expense: '. $expense->id);
+            $this->info(date('r') . ' Processing Expense: ' . $expense->id);
             $this->recurringExpenseRepo->createRecurringExpense($expense);
         }
     }

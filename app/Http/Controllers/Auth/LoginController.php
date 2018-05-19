@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Utils;
-use Illuminate\Http\Request;
+use App\Events\UserLoggedIn;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ValidateTwoFactorRequest;
 use App\Models\User;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Event;
 use Cache;
+use Cookie;
+use Event;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 use Lang;
 use Str;
-use Cookie;
-use App\Events\UserLoggedIn;
-use App\Http\Requests\ValidateTwoFactorRequest;
+use Utils;
 
 class LoginController extends Controller
 {
@@ -57,16 +57,16 @@ class LoginController extends Controller
             return redirect('/');
         }
 
-        if (! Utils::isNinja() && ! User::count()) {
+        if (!Utils::isNinja() && !User::count()) {
             return redirect()->to('/setup');
         }
 
-        if (Utils::isNinja() && ! Utils::isTravis()) {
+        if (Utils::isNinja() && !Utils::isTravis()) {
             // make sure the user is on SITE_URL/login to ensure OAuth works
             $requestURL = request()->url();
             $loginURL = SITE_URL . '/login';
             $subdomain = Utils::getSubdomain(request()->url());
-            if ($requestURL != $loginURL && ! strstr($subdomain, 'webapp-')) {
+            if ($requestURL != $loginURL && !strstr($subdomain, 'webapp-')) {
                 return redirect()->to($loginURL);
             }
         }
@@ -104,7 +104,8 @@ class LoginController extends Controller
             }
             */
         } else {
-            $stacktrace = sprintf("%s %s %s %s\n", date('Y-m-d h:i:s'), $request->input('email'), \Request::getClientIp(), array_get($_SERVER, 'HTTP_USER_AGENT'));
+            $stacktrace = sprintf("%s %s %s %s\n", date('Y-m-d h:i:s'), $request->input('email'),
+                \Request::getClientIp(), array_get($_SERVER, 'HTTP_USER_AGENT'));
             if (config('app.log') == 'single') {
                 file_put_contents(storage_path('logs/failed-logins.log'), $stacktrace, FILE_APPEND);
             } else {
@@ -120,9 +121,82 @@ class LoginController extends Controller
     }
 
     /**
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getValidateToken()
+    {
+        if (session('2fa:user:id')) {
+            return view('auth.two_factor');
+        }
+
+        return redirect('login');
+    }
+
+    /**
+     *
+     * @param  App\Http\Requests\ValidateSecretRequest $request
+     * @return \Illuminate\Http\Response
+     */
+    public function postValidateToken(ValidateTwoFactorRequest $request)
+    {
+        //get user id and create cache key
+        $userId = session()->pull('2fa:user:id');
+        $key = $userId . ':' . $request->totp;
+
+        //use cache to store token to blacklist
+        Cache::add($key, true, 4);
+
+        //login and redirect user
+        auth()->loginUsingId($userId);
+        Event::fire(new UserLoggedIn());
+
+        if ($trust = request()->trust) {
+            $user = auth()->user();
+            if (!$user->remember_2fa_token) {
+                $user->remember_2fa_token = Str::random(60);
+                $user->save();
+            }
+            $minutes = $trust == 30 ? 60 * 27 * 30 : 2628000;
+            cookie()->queue('remember_2fa_' . sha1($user->id), $user->remember_2fa_token, $minutes);
+        }
+
+        return redirect()->intended($this->redirectTo);
+    }
+
+    /**
+     * @return \Illuminate\Http\Response
+     */
+    public function getLogoutWrapper(Request $request)
+    {
+        if (auth()->check() && !auth()->user()->email && !auth()->user()->registered) {
+            if (request()->force_logout) {
+                $account = auth()->user()->account;
+                app('App\Ninja\Repositories\AccountRepository')->unlinkAccount($account);
+
+                if (!$account->hasMultipleAccounts()) {
+                    $account->company->forceDelete();
+                }
+                $account->forceDelete();
+            } else {
+                return redirect('/');
+            }
+        }
+
+        $response = self::logout($request);
+
+        $reason = htmlentities(request()->reason);
+        if (!empty($reason) && Lang::has("texts.{$reason}_logout")) {
+            session()->flash('warning', trans("texts.{$reason}_logout"));
+        }
+
+        return $response;
+    }
+
+    /**
      * Get the failed login response instance.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     protected function sendFailedLoginResponse(Request $request)
@@ -161,78 +235,5 @@ class LoginController extends Controller
         Event::fire(new UserLoggedIn());
 
         return redirect()->intended($this->redirectTo);
-    }
-
-    /**
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function getValidateToken()
-    {
-        if (session('2fa:user:id')) {
-            return view('auth.two_factor');
-        }
-
-        return redirect('login');
-    }
-
-    /**
-     *
-     * @param  App\Http\Requests\ValidateSecretRequest $request
-     * @return \Illuminate\Http\Response
-     */
-    public function postValidateToken(ValidateTwoFactorRequest $request)
-    {
-        //get user id and create cache key
-        $userId = session()->pull('2fa:user:id');
-        $key = $userId . ':' . $request->totp;
-
-        //use cache to store token to blacklist
-        Cache::add($key, true, 4);
-
-        //login and redirect user
-        auth()->loginUsingId($userId);
-        Event::fire(new UserLoggedIn());
-
-        if ($trust = request()->trust) {
-            $user = auth()->user();
-            if (! $user->remember_2fa_token) {
-                $user->remember_2fa_token = Str::random(60);
-                $user->save();
-            }
-            $minutes = $trust == 30 ? 60 * 27 * 30 : 2628000;
-            cookie()->queue('remember_2fa_' . sha1($user->id), $user->remember_2fa_token, $minutes);
-        }
-
-        return redirect()->intended($this->redirectTo);
-    }
-
-    /**
-     * @return \Illuminate\Http\Response
-     */
-    public function getLogoutWrapper(Request $request)
-    {
-        if (auth()->check() && ! auth()->user()->email && ! auth()->user()->registered) {
-            if (request()->force_logout) {
-                $account = auth()->user()->account;
-                app('App\Ninja\Repositories\AccountRepository')->unlinkAccount($account);
-
-                if (! $account->hasMultipleAccounts()) {
-                    $account->company->forceDelete();
-                }
-                $account->forceDelete();
-            } else {
-                return redirect('/');
-            }
-        }
-
-        $response = self::logout($request);
-
-        $reason = htmlentities(request()->reason);
-        if (!empty($reason) && Lang::has("texts.{$reason}_logout")) {
-            session()->flash('warning', trans("texts.{$reason}_logout"));
-        }
-
-        return $response;
     }
 }

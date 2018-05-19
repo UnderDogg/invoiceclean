@@ -2,9 +2,9 @@
 
 namespace App\Ninja\Import\Stripe;
 
+use App\Models\PaymentType;
 use App\Ninja\Import\BaseTransformer;
 use League\Fractal\Resource\Item;
-use App\Models\PaymentType;
 
 /**
  * Class InvoiceTransformer.
@@ -18,14 +18,14 @@ class CustomerTransformer extends BaseTransformer
      */
     public function transform($data)
     {
-        if (! $contact = $this->getContact($data->email)) {
+        if (!$contact = $this->getContact($data->email)) {
             return false;
         }
 
         $account = auth()->user()->account;
         $accountGateway = $account->getGatewayConfig(GATEWAY_STRIPE);
 
-        if (! $accountGateway) {
+        if (!$accountGateway) {
             return false;
         }
 

@@ -247,26 +247,39 @@
             }
         }
 
-
         table.dataTable thead > tr > th, table.invoice-table thead > tr > th {
-            background-color: {{ $color }} !important;
+            background-color: {{ $color }}  !important;
         }
 
-        .pagination>.active>a,
-        .pagination>.active>span,
-        .pagination>.active>a:hover,
-        .pagination>.active>span:hover,
-        .pagination>.active>a:focus,
-        .pagination>.active>span:focus {
+        .pagination > .active > a,
+        .pagination > .active > span,
+        .pagination > .active > a:hover,
+        .pagination > .active > span:hover,
+        .pagination > .active > a:focus,
+        .pagination > .active > span:focus {
             background-color: {{ $color }};
             border-color: {{ $color }};
         }
 
-        table.table thead .sorting:after { content: '' !important }
-        table.table thead .sorting_asc:after { content: '' !important }
-        table.table thead .sorting_desc:after { content: '' !important }
-        table.table thead .sorting_asc_disabled:after { content: '' !important }
-        table.table thead .sorting_desc_disabled:after { content: '' !important }
+        table.table thead .sorting:after {
+            content: '' !important
+        }
+
+        table.table thead .sorting_asc:after {
+            content: '' !important
+        }
+
+        table.table thead .sorting_desc:after {
+            content: '' !important
+        }
+
+        table.table thead .sorting_asc_disabled:after {
+            content: '' !important
+        }
+
+        table.table thead .sorting_desc_disabled:after {
+            content: '' !important
+        }
 
     </style>
 
@@ -354,7 +367,7 @@
                 <div class="pull-right">
                     {!! Button::success(strtoupper(trans("texts.edit_details")))->asLinkTo(URL::to('/client/details'))->withAttributes(['id' => 'editDetailsButton']) !!}
                     @if ($client->hasRecurringInvoices())
-                         &nbsp; {!! Button::primary(strtoupper(trans("texts.recurring")))->asLinkTo(URL::to('/client/invoices/recurring')) !!}
+                        &nbsp; {!! Button::primary(strtoupper(trans("texts.recurring")))->asLinkTo(URL::to('/client/invoices/recurring')) !!}
                     @endif
                     &nbsp; {!! Button::primary(strtoupper(trans("texts.view_statement")))->asLinkTo(URL::to('/client/statement')) !!}
                 </div>

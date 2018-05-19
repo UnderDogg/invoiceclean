@@ -4,14 +4,13 @@
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
  */
 
-@media(min-width:768px) {
+@media (min-width: 768px) {
 
     body {
         overflow-x: hidden;
     }
 
     /* Toggle Styles */
-
     #wrapper {
         padding-top: 56px;
         padding-left: 0;
@@ -87,7 +86,6 @@
     }
 
     /* Sidebar Styles */
-
     .sidebar-nav {
         padding-top: 16px;
         position: absolute;
@@ -182,7 +180,7 @@
     }
 
     .sidebar-nav li div {
-        max-width:226px;
+        max-width: 226px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -192,12 +190,12 @@
         text-indent: 16px;
         line-height: 36px;
         position: fixed;
-        bottom:0;
-        left:0;
-        right:0;
-        text-align:left;
-        width:100%;
-        min-width:250px;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: left;
+        width: 100%;
+        min-width: 250px;
     }
 
     .sidebar-nav-dark li div.nav-footer {
@@ -211,11 +209,11 @@
     }
 
     .sidebar-nav li div.nav-footer i {
-        color:#ccc !important;
+        color: #ccc !important;
     }
 
     .sidebar-nav li div.nav-footer i:hover {
-        color:#fff !important;
+        color: #fff !important;
     }
 
     #wrapper.toggled-left #left-sidebar-wrapper .nav-footer {
@@ -236,9 +234,9 @@
     }
 
     #left-sidebar-wrapper a.btn {
-        margin-top:8px;
-        margin-right:10px;
-        text-indent:0px
+        margin-top: 8px;
+        margin-right: 10px;
+        text-indent: 0px
     }
 
     #right-sidebar-wrapper {
@@ -271,17 +269,17 @@
     .menu-toggle {
         text-decoration: none;
     }
+
     .menu-toggle:hover {
         text-decoration: none;
     }
 
-    #right-menu-toggle div
-    {
-        width:30px;
-        margin-right:12px;
-        margin-left:24px;
-        margin-top:20px;
-        margin-bottom:25px;
+    #right-menu-toggle div {
+        width: 30px;
+        margin-right: 12px;
+        margin-left: 24px;
+        margin-top: 20px;
+        margin-bottom: 25px;
         text-align: center;
     }
 

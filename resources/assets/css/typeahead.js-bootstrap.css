@@ -9,7 +9,7 @@
 }
 
 .twitter-typeahead .tt-input[disabled] {
-  background-color : #eeeeee !important;
+    background-color: #eeeeee !important;
 }
 
 /*Added to input that's initialized into a typeahead*/
@@ -24,15 +24,15 @@
 
 /*Added to menu element*/
 .twitter-typeahead .tt-menu {
-  width: 100%;
-  max-height: 500px;
-  overflow-y: none;
-  border: 1px solid #cccccc;
-  border-radius:4px;
- 
-  -moz-box-shadow: 12px 14px 30px -7px #616161;
-  -webkit-box-shadow: 12px 14px 30px -7px #616161;
-  box-shadow: 12px 14px 30px -7px #616161;
+    width: 100%;
+    max-height: 500px;
+    overflow-y: none;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+
+    -moz-box-shadow: 12px 14px 30px -7px #616161;
+    -webkit-box-shadow: 12px 14px 30px -7px #616161;
+    box-shadow: 12px 14px 30px -7px #616161;
 }
 
 /*Added to dataset elements*/
@@ -42,28 +42,28 @@
 
 /*dded to suggestion elements*/
 .twitter-typeahead .tt-suggestion {
-  padding: 3px 20px;
-  white-space: nowrap;
-  cursor: pointer;
+    padding: 3px 20px;
+    white-space: nowrap;
+    cursor: pointer;
 }
 
 /*Added to menu element when it contains no content*/
 .twitter-typeahead .tt-empty {
-  background-color: white;
+    background-color: white;
 }
 
 /*Added to menu element when it is opened*/
 .twitter-typeahead .tt-open {
-  background-color: white;
+    background-color: white;
 }
 
 /*Added to suggestion element when menu cursor moves to said suggestion*/
 .twitter-typeahead .tt-suggestion:hover,
 .twitter-typeahead .tt-suggestion:focus,
 .twitter-typeahead .tt-cursor {
-  cursor: hand !important;
-  background-color: #337ab7;
-  color: white;
+    cursor: hand !important;
+    background-color: #337ab7;
+    color: white;
 }
 
 /*Added to the element that wraps highlighted text*/

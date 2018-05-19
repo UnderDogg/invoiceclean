@@ -2,23 +2,21 @@
 
 namespace App\Console\Commands;
 
-use App\Libraries\CurlUtils;
-use Carbon;
-use Str;
-use Cache;
-use Utils;
-use Exception;
+use App\Jobs\ExportReportResults;
+use App\Jobs\RunReport;
 use App\Jobs\SendInvoiceEmail;
-use App\Models\Invoice;
+use App\Libraries\CurlUtils;
 use App\Models\Currency;
+use App\Models\ScheduledReport;
 use App\Ninja\Mailers\UserMailer;
 use App\Ninja\Repositories\AccountRepository;
 use App\Ninja\Repositories\InvoiceRepository;
-use App\Models\ScheduledReport;
+use Cache;
+use Exception;
 use Illuminate\Console\Command;
+use Str;
 use Symfony\Component\Console\Input\InputOption;
-use App\Jobs\ExportReportResults;
-use App\Jobs\RunReport;
+use Utils;
 
 /**
  * Class SendReminders.
@@ -48,7 +46,7 @@ class SendReminders extends Command
     /**
      * SendReminders constructor.
      *
-     * @param Mailer            $mailer
+     * @param Mailer $mailer
      * @param InvoiceRepository $invoiceRepo
      * @param accountRepository $accountRepo
      */
@@ -79,8 +77,8 @@ class SendReminders extends Command
         if ($errorEmail = env('ERROR_EMAIL')) {
             \Mail::raw('EOM', function ($message) use ($errorEmail, $database) {
                 $message->to($errorEmail)
-                        ->from(CONTACT_EMAIL)
-                        ->subject("SendReminders [{$database}]: Finished successfully");
+                    ->from(CONTACT_EMAIL)
+                    ->subject("SendReminders [{$database}]: Finished successfully");
             });
         }
     }
@@ -91,7 +89,7 @@ class SendReminders extends Command
         $this->info(date('r ') . $accounts->count() . ' accounts found with fees');
 
         foreach ($accounts as $account) {
-            if (! $account->hasFeature(FEATURE_EMAIL_TEMPLATES_REMINDERS)) {
+            if (!$account->hasFeature(FEATURE_EMAIL_TEMPLATES_REMINDERS)) {
                 continue;
             }
 
@@ -118,7 +116,7 @@ class SendReminders extends Command
         $this->info(date('r ') . count($accounts) . ' accounts found with reminders');
 
         foreach ($accounts as $account) {
-            if (! $account->hasFeature(FEATURE_EMAIL_TEMPLATES_REMINDERS)) {
+            if (!$account->hasFeature(FEATURE_EMAIL_TEMPLATES_REMINDERS)) {
                 continue;
             }
 
@@ -164,18 +162,19 @@ class SendReminders extends Command
             $account = $scheduledReport->account;
             $account->loadLocalizationSettings();
 
-            if (! $account->hasFeature(FEATURE_REPORTS)) {
+            if (!$account->hasFeature(FEATURE_REPORTS)) {
                 continue;
             }
 
-            $config = (array) json_decode($scheduledReport->config);
+            $config = (array)json_decode($scheduledReport->config);
             $reportType = $config['report_type'];
 
             // send email as user
             auth()->onceUsingId($user->id);
 
             $report = dispatch(new RunReport($scheduledReport->user, $reportType, $config, true));
-            $file = dispatch(new ExportReportResults($scheduledReport->user, $config['export_format'], $reportType, $report->exportParams));
+            $file = dispatch(new ExportReportResults($scheduledReport->user, $config['export_format'], $reportType,
+                $report->exportParams));
 
             if ($file) {
                 try {

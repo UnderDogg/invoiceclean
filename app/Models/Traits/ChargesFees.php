@@ -2,10 +2,6 @@
 
 namespace App\Models\Traits;
 
-use App\Models\GatewayType;
-use App\Models\InvoiceItem;
-use App\Models\AccountGatewaySettings;
-
 /**
  * Class ChargesFees
  */
@@ -17,7 +13,7 @@ trait ChargesFees
         $settings = $account->getGatewaySettings($gatewayTypeId);
         $fee = 0;
 
-        if (! $account->gateway_fee_enabled) {
+        if (!$account->gateway_fee_enabled) {
             return false;
         }
 
@@ -50,7 +46,7 @@ trait ChargesFees
     {
         $account = $this->account;
 
-        if (! $account->gateway_fee_enabled) {
+        if (!$account->gateway_fee_enabled) {
             return 0;
         }
 
@@ -60,7 +56,7 @@ trait ChargesFees
 
     public function getGatewayFeeItem()
     {
-        if (! $this->relationLoaded('invoice_items')) {
+        if (!$this->relationLoaded('invoice_items')) {
             $this->load('invoice_items');
         }
 

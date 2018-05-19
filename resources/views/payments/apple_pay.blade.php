@@ -20,15 +20,15 @@
         var prButton = elements.create('paymentRequestButton', {
             paymentRequest: paymentRequest,
             style: {
-              paymentRequestButton: {
-                height: '44px',
-              },
+                paymentRequestButton: {
+                    height: '44px',
+                },
             },
         });
 
-        $(function() {
+        $(function () {
             // Check the availability of the Payment Request API first.
-            paymentRequest.canMakePayment().then(function(result) {
+            paymentRequest.canMakePayment().then(function (result) {
                 if (result) {
                     prButton.mount('#payment-request-button');
                 } else {
@@ -37,7 +37,7 @@
                 }
             });
 
-            paymentRequest.on('token', function(ev) {
+            paymentRequest.on('token', function (ev) {
                 $.ajax({
                     dataType: 'json',
                     type: 'post',
@@ -46,7 +46,7 @@
                     accepts: {
                         json: 'application/json'
                     },
-                    success: function(response) {
+                    success: function (response) {
                         if (response == '{{ RESULT_SUCCESS }}') {
                             ev.complete('success');
                             location.reload();
@@ -54,7 +54,7 @@
                             ev.complete('fail');
                         }
                     },
-                    error: function(error) {
+                    error: function (error) {
                         ev.complete('fail');
                     }
                 });

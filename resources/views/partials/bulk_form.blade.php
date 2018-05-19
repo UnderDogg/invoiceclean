@@ -14,11 +14,11 @@
         }
 
         @if (in_array($entityType, [ENTITY_ACCOUNT_GATEWAY]))
-            if (action == 'archive') {
-                if (!confirm({!! json_encode(trans("texts.are_you_sure")) !!})) {
-                    return;
-                }
+        if (action == 'archive') {
+            if (!confirm({!! json_encode(trans("texts.are_you_sure")) !!})) {
+                return;
             }
+        }
         @endif
 
         $('.bulk-public-id').val(id);

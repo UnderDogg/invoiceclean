@@ -11,7 +11,7 @@ hr.green {
     border: 0;
 }
 
-.alert li{
+.alert li {
     list-style: none;
 }
 
@@ -328,14 +328,17 @@ fieldset[disabled] .btn-primary.active {
 }
 
 ::-webkit-input-placeholder { /* WebKit, Blink, Edge */
-   font-weight: normal;
+    font-weight: normal;
 }
+
 :-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-   font-weight: normal;
+    font-weight: normal;
 }
+
 ::-moz-placeholder { /* Mozilla Firefox 19+ */
-   font-weight: normal;
+    font-weight: normal;
 }
+
 :-ms-input-placeholder { /* Internet Explorer 10-11 */
-   font-weight: normal;
+    font-weight: normal;
 }

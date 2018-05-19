@@ -1,8 +1,8 @@
 body {
-  background-color: #f8f8f8;
+    background-color: #f8f8f8;
 }
 
-.nav-tabs.nav-justified>.active>a, .nav-tabs.nav-justified>.active>a:hover, .nav-tabs.nav-justified>.active>a:focus {
+.nav-tabs.nav-justified > .active > a, .nav-tabs.nav-justified > .active > a:hover, .nav-tabs.nav-justified > .active > a:focus {
     background-color: #117cc1;
 }
 
@@ -14,7 +14,7 @@ body {
     background-color: #117cc1;
 }
 
-.pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus {
+.pagination > .active > a, .pagination > .active > span, .pagination > .active > a:hover, .pagination > .active > span:hover, .pagination > .active > a:focus, .pagination > .active > span:focus {
     background-color: #117cc1;
     border-color: #117cc1;
 }
@@ -28,11 +28,10 @@ body {
     background-color: #0a3f60 !important;
 }
 
-
 table.dataTable thead > tr > th,
 table.invoice-table thead > tr > th {
     background-color: #777 !important;
-    color:#fff;
+    color: #fff;
 }
 
 thead th {
@@ -54,17 +53,15 @@ thead th {
 
 .sidebar-nav-dark li:hover,
 .sidebar-nav-dark li.active {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
-
-
 
 .sidebar-nav-light {
     background-color: #FFFFFF;
 }
 
 .sidebar-nav-light li {
-    border-bottom:solid 1px #DDD;
+    border-bottom: solid 1px #DDD;
 }
 
 .sidebar-nav-light li > a {
@@ -78,10 +75,8 @@ thead th {
 
 .sidebar-nav-light li:hover,
 .sidebar-nav-light li.active {
-    background: rgba(140,140,140,0.1);
+    background: rgba(140, 140, 140, 0.1);
 }
-
-
 
 .menu-toggle i {
     color: #999999;

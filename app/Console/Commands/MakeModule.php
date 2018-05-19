@@ -61,9 +61,10 @@ class MakeModule extends Command
         Artisan::call('module:make', ['name' => [$name]]);
         $progressBar->advance();
 
-        if (! $plain) {
+        if (!$plain) {
             $progressBar->setMessage("Creating migrations...");
-            Artisan::call('module:make-migration', ['name' => "create_{$lower}_table", '--fields' => $fields, 'module' => $name]);
+            Artisan::call('module:make-migration',
+                ['name' => "create_{$lower}_table", '--fields' => $fields, 'module' => $name]);
             $progressBar->advance();
 
             $progressBar->setMessage("Creating models...");
@@ -71,15 +72,23 @@ class MakeModule extends Command
             $progressBar->advance();
 
             $progressBar->setMessage("Creating views...");
-            Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'views', '--fields' => $fields, '--filename' => 'edit.blade']);
+            Artisan::call('ninja:make-class', [
+                'name' => $name,
+                'module' => $name,
+                'class' => 'views',
+                '--fields' => $fields,
+                '--filename' => 'edit.blade'
+            ]);
             $progressBar->advance();
 
             $progressBar->setMessage("Creating datatables...");
-            Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'datatable', '--fields' => $fields]);
+            Artisan::call('ninja:make-class',
+                ['name' => $name, 'module' => $name, 'class' => 'datatable', '--fields' => $fields]);
             $progressBar->advance();
 
             $progressBar->setMessage("Creating repositories...");
-            Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'repository', '--fields' => $fields]);
+            Artisan::call('ninja:make-class',
+                ['name' => $name, 'module' => $name, 'class' => 'repository', '--fields' => $fields]);
             $progressBar->advance();
 
             $progressBar->setMessage("Creating presenters...");
@@ -88,8 +97,10 @@ class MakeModule extends Command
 
             $progressBar->setMessage("Creating requests...");
             Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'request']);
-            Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'request', 'prefix' => 'create']);
-            Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'request', 'prefix' => 'update']);
+            Artisan::call('ninja:make-class',
+                ['name' => $name, 'module' => $name, 'class' => 'request', 'prefix' => 'create']);
+            Artisan::call('ninja:make-class',
+                ['name' => $name, 'module' => $name, 'class' => 'request', 'prefix' => 'update']);
             $progressBar->advance();
 
             $progressBar->setMessage("Creating api-controllers...");
@@ -97,7 +108,8 @@ class MakeModule extends Command
             $progressBar->advance();
 
             $progressBar->setMessage("Creating transformers...");
-            Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'transformer', '--fields' => $fields]);
+            Artisan::call('ninja:make-class',
+                ['name' => $name, 'module' => $name, 'class' => 'transformer', '--fields' => $fields]);
             $progressBar->advance();
 
             // if the migrate flag was specified, run the migrations
@@ -117,7 +129,8 @@ class MakeModule extends Command
         $progressBar->advance();
 
         $progressBar->setMessage("Creating translations...");
-        Artisan::call('ninja:make-class', ['name' => $name, 'module' => $name, 'class' => 'lang', '--filename' => 'texts']);
+        Artisan::call('ninja:make-class',
+            ['name' => $name, 'module' => $name, 'class' => 'lang', '--filename' => 'texts']);
         $progressBar->advance();
 
         $progressBar->setMessage("Dumping module auto-load...");

@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Utils;
-use stdClass;
 use App\Models\Account;
 use Faker\Factory;
 use Illuminate\Console\Command;
+use stdClass;
+use Utils;
 
 /**
  * Class CreateLuisData.
@@ -101,6 +101,28 @@ class CreateLuisData extends Command
         return $intents;
     }
 
+    private function createIntent($name, $text, $entities)
+    {
+        $intent = new stdClass();
+        $intent->intent = $name;
+        $intent->text = $text;
+        $intent->entities = [];
+
+        foreach ($entities as $value => $entity) {
+            $startPos = strpos($text, (string)$value);
+            if (!$startPos) {
+                dd("Failed to find {$value} in {$text}");
+            }
+            $entityClass = new stdClass();
+            $entityClass->entity = $entity;
+            $entityClass->startPos = $startPos;
+            $entityClass->endPos = $entityClass->startPos + strlen($value) - 1;
+            $intent->entities[] = $entityClass;
+        }
+
+        return $intent;
+    }
+
     private function getFindEntityIntents($entityType)
     {
         $intents = [];
@@ -156,7 +178,7 @@ class CreateLuisData extends Command
             ]);
             $intents[] = $this->createIntent('ListEntity', "show me {$client}'s active {$entityTypePlural}", [
                 $entityTypePlural => 'EntityType',
-                $client . '\'s'  => 'Name',
+                $client . '\'s' => 'Name',
                 'active' => 'Filter',
             ]);
         }
@@ -181,29 +203,6 @@ class CreateLuisData extends Command
 
         return $intents;
     }
-
-    private function createIntent($name, $text, $entities)
-    {
-        $intent = new stdClass();
-        $intent->intent = $name;
-        $intent->text = $text;
-        $intent->entities = [];
-
-        foreach ($entities as $value => $entity) {
-            $startPos = strpos($text, (string)$value);
-            if (! $startPos) {
-                dd("Failed to find {$value} in {$text}");
-            }
-            $entityClass = new stdClass();
-            $entityClass->entity = $entity;
-            $entityClass->startPos = $startPos;
-            $entityClass->endPos = $entityClass->startPos + strlen($value) - 1;
-            $intent->entities[] = $entityClass;
-        }
-
-        return $intent;
-    }
-
 
     /**
      * @return array

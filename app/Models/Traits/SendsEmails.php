@@ -3,33 +3,14 @@
 namespace App\Models\Traits;
 
 use App\Constants\Domain;
-use Utils;
 use HTMLUtils;
+use Utils;
 
 /**
  * Class SendsEmails.
  */
 trait SendsEmails
 {
-    /**
-     * @param $entityType
-     *
-     * @return mixed
-     */
-    public function getDefaultEmailSubject($entityType)
-    {
-        if (strpos($entityType, 'reminder') !== false) {
-            $entityType = 'reminder';
-        }
-
-        return trans("texts.{$entityType}_subject", [
-            'invoice' => '$invoice',
-            'account' => '$account',
-            'quote' => '$quote',
-            'number' => '$number',
-        ]);
-    }
-
     /**
      * @param $entityType
      *
@@ -52,31 +33,21 @@ trait SendsEmails
 
     /**
      * @param $entityType
-     * @param bool $message
      *
-     * @return string
+     * @return mixed
      */
-    public function getDefaultEmailTemplate($entityType, $message = false)
+    public function getDefaultEmailSubject($entityType)
     {
         if (strpos($entityType, 'reminder') !== false) {
-            $entityType = ENTITY_INVOICE;
+            $entityType = 'reminder';
         }
 
-        $template = '<div>$client,</div><br />';
-
-        if ($this->hasFeature(FEATURE_CUSTOM_EMAILS) && $this->email_design_id != EMAIL_DESIGN_PLAIN) {
-            $template .= '<div>' . trans("texts.{$entityType}_message_button", ['amount' => '$amount']) . '</div><br />' .
-                         '<div style="text-align:center;">$viewButton</div><br />';
-        } else {
-            $template .= '<div>' . trans("texts.{$entityType}_message", ['amount' => '$amount']) . '</div><br />' .
-                         '<div>$viewLink</div><br />';
-        }
-
-        if ($message) {
-            $template .= "$message<p/>";
-        }
-
-        return $template . '$emailSignature';
+        return trans("texts.{$entityType}_subject", [
+            'invoice' => '$invoice',
+            'account' => '$account',
+            'quote' => '$quote',
+            'number' => '$number',
+        ]);
     }
 
     /**
@@ -94,7 +65,7 @@ trait SendsEmails
             $template = $this->account_email_settings->$field;
         }
 
-        if (! $template) {
+        if (!$template) {
             $template = $this->getDefaultEmailTemplate($entityType, $message);
         }
 
@@ -104,6 +75,36 @@ trait SendsEmails
         $template = str_replace('/>', ' />', $template);
 
         return HTMLUtils::sanitizeHTML($template);
+    }
+
+    /**
+     * @param $entityType
+     * @param bool $message
+     *
+     * @return string
+     */
+    public function getDefaultEmailTemplate($entityType, $message = false)
+    {
+        if (strpos($entityType, 'reminder') !== false) {
+            $entityType = ENTITY_INVOICE;
+        }
+
+        $template = '<div>$client,</div><br />';
+
+        if ($this->hasFeature(FEATURE_CUSTOM_EMAILS) && $this->email_design_id != EMAIL_DESIGN_PLAIN) {
+            $template .= '<div>' . trans("texts.{$entityType}_message_button",
+                    ['amount' => '$amount']) . '</div><br />' .
+                '<div style="text-align:center;">$viewButton</div><br />';
+        } else {
+            $template .= '<div>' . trans("texts.{$entityType}_message", ['amount' => '$amount']) . '</div><br />' .
+                '<div>$viewLink</div><br />';
+        }
+
+        if ($message) {
+            $template .= "$message<p/>";
+        }
+
+        return $template . '$emailSignature';
     }
 
     /**
@@ -130,23 +131,6 @@ trait SendsEmails
     }
 
     /**
-     * @param $reminder
-     *
-     * @return bool
-     */
-    public function getReminderDate($reminder, $filterEnabled = true)
-    {
-        if ($filterEnabled && ! $this->{"enable_reminder{$reminder}"}) {
-            return false;
-        }
-
-        $numDays = $this->{"num_days_reminder{$reminder}"};
-        $plusMinus = $this->{"direction_reminder{$reminder}"} == REMINDER_DIRECTION_AFTER ? '-' : '+';
-
-        return date('Y-m-d', strtotime("$plusMinus $numDays days"));
-    }
-
-    /**
      * @param Invoice $invoice
      *
      * @return bool|string
@@ -169,6 +153,23 @@ trait SendsEmails
         }
 
         return false;
+    }
+
+    /**
+     * @param $reminder
+     *
+     * @return bool
+     */
+    public function getReminderDate($reminder, $filterEnabled = true)
+    {
+        if ($filterEnabled && !$this->{"enable_reminder{$reminder}"}) {
+            return false;
+        }
+
+        $numDays = $this->{"num_days_reminder{$reminder}"};
+        $plusMinus = $this->{"direction_reminder{$reminder}"} == REMINDER_DIRECTION_AFTER ? '-' : '+';
+
+        return date('Y-m-d', strtotime("$plusMinus $numDays days"));
     }
 
     public function setTemplateDefaults($type, $subject, $body)
@@ -198,7 +199,7 @@ trait SendsEmails
 
     public function getFromEmail()
     {
-        if (! $this->isPro() || ! Utils::isNinja() || Utils::isReseller()) {
+        if (!$this->isPro() || !Utils::isNinja() || Utils::isReseller()) {
             return false;
         }
 

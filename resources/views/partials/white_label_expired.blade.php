@@ -7,7 +7,7 @@
 <script type="text/javascript">
     function hideWhiteLabelExpiredMessage() {
         jQuery('#whiteLabelExpired').fadeOut();
-        $.get('/white_label/hide_message', function(response) {
+        $.get('/white_label/hide_message', function (response) {
             console.log('Reponse: %s', response);
         });
         return false;

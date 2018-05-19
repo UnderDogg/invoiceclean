@@ -68,9 +68,9 @@ class PushFactory
      * We need to run this once ~ 24hrs
      *
      *
-     * @param string $token   - A valid token (can be any valid token)
+     * @param string $token - A valid token (can be any valid token)
      * @param string $message - Nil value for message
-     * @param string $device  - Type of device the message is being pushed to.
+     * @param string $device - Type of device the message is being pushed to.
      *
      * @return array
      */

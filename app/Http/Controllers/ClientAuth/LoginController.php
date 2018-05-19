@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\ClientAuth;
 
-use Utils;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\Contact;
 use App\Models\Account;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Utils;
 
 class LoginController extends Controller
 {
@@ -43,6 +42,49 @@ class LoginController extends Controller
     }
 
     /**
+     * @return mixed
+     */
+    public function showLoginForm()
+    {
+        $subdomain = Utils::getSubdomain(\Request::server('HTTP_HOST'));
+        $hasAccountIndentifier = request()->account_key || ($subdomain && !in_array($subdomain, ['www', 'app']));
+
+        if (!session('contact_key')) {
+            if (Utils::isNinja()) {
+                if (!$hasAccountIndentifier) {
+                    return redirect('/client/session_expired');
+                }
+            } else {
+                if (!$hasAccountIndentifier && Account::count() > 1) {
+                    return redirect('/client/session_expired');
+                }
+            }
+        }
+
+        return view('clientauth.login')->with(['clientauth' => true]);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSessionExpired()
+    {
+        return view('clientauth.sessionexpired')->with(['clientauth' => true]);
+    }
+
+    /**
+     * @return \Illuminate\Http\Response
+     */
+    public function getLogoutWrapper(Request $request)
+    {
+        $contactKey = session('contact_key');
+
+        self::logout($request);
+
+        return redirect('/client/dashboard/' . $contactKey);
+    }
+
+    /**
      * Get the guard to be used during authentication.
      *
      * @return \Illuminate\Contracts\Auth\StatefulGuard
@@ -50,29 +92,6 @@ class LoginController extends Controller
     protected function guard()
     {
         return auth()->guard('client');
-    }
-
-    /**
-     * @return mixed
-     */
-    public function showLoginForm()
-    {
-        $subdomain = Utils::getSubdomain(\Request::server('HTTP_HOST'));
-        $hasAccountIndentifier = request()->account_key || ($subdomain && ! in_array($subdomain, ['www', 'app']));
-
-        if (! session('contact_key')) {
-            if (Utils::isNinja()) {
-                if (! $hasAccountIndentifier) {
-                    return redirect('/client/session_expired');
-                }
-            } else {
-                if (! $hasAccountIndentifier && Account::count() > 1) {
-                    return redirect('/client/session_expired');
-                }
-            }
-        }
-
-        return view('clientauth.login')->with(['clientauth' => true]);
     }
 
     /**
@@ -92,7 +111,7 @@ class LoginController extends Controller
             $account = false;
 
             // resolve the email to a contact/account
-            if (! Utils::isNinja() && Account::count() == 1) {
+            if (!Utils::isNinja() && Account::count() == 1) {
                 $account = Account::first();
             } elseif ($accountKey = request()->account_key) {
                 $account = Account::whereAccountKey($accountKey)->first();
@@ -114,23 +133,9 @@ class LoginController extends Controller
     }
 
     /**
-     * Send the post-authentication response.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @param  \Illuminate\Contracts\Auth\Authenticatable $user
-     * @return \Illuminate\Http\Response
-     */
-    private function authenticated(Request $request, Authenticatable $contact)
-    {
-        session(['contact_key' => $contact->contact_key]);
-
-        return redirect()->intended($this->redirectPath());
-    }
-
-    /**
      * Get the failed login response instance.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     protected function sendFailedLoginResponse(Request $request)
@@ -155,7 +160,7 @@ class LoginController extends Controller
             'password' => 'required',
         ];
 
-        if (! session('contact_key')) {
+        if (!session('contact_key')) {
             $rules['email'] = 'required|email';
         }
 
@@ -163,23 +168,17 @@ class LoginController extends Controller
     }
 
     /**
-     * @return mixed
-     */
-    public function getSessionExpired()
-    {
-        return view('clientauth.sessionexpired')->with(['clientauth' => true]);
-    }
-
-    /**
+     * Send the post-authentication response.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Illuminate\Contracts\Auth\Authenticatable $user
      * @return \Illuminate\Http\Response
      */
-    public function getLogoutWrapper(Request $request)
+    private function authenticated(Request $request, Authenticatable $contact)
     {
-        $contactKey = session('contact_key');
+        session(['contact_key' => $contact->contact_key]);
 
-        self::logout($request);
-
-        return redirect('/client/dashboard/' . $contactKey);
+        return redirect()->intended($this->redirectPath());
     }
 
 }

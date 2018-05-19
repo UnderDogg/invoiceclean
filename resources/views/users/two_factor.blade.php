@@ -13,9 +13,9 @@
     <div class="row">
         <div class="col-md-12">
             <div class="panel panel-default">
-              <div class="panel-heading">
-                <h3 class="panel-title">{!! trans('texts.two_factor_setup') !!}</h3>
-              </div>
+                <div class="panel-heading">
+                    <h3 class="panel-title">{!! trans('texts.two_factor_setup') !!}</h3>
+                </div>
                 <div class="panel-body form-padding-right">
                     <div class="text-center">
                         <img src="{{ $qrCode }}" alt="">

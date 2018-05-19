@@ -15,7 +15,7 @@ class ReferralRepository
             'enterprise' => 0,
         ];
 
-        if (! $referralCode) {
+        if (!$referralCode) {
             return $counts;
         }
 

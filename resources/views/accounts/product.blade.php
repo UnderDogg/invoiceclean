@@ -43,21 +43,21 @@
 
     @foreach(Module::getOrdered() as $module)
         @if(View::exists($module->alias . '::accounts.product'))
-        <div class="row">
-            <div class="col-lg-10 col-lg-offset-1">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title in-white">
-                            <i class="fa fa-{{ $module->icon }}"></i>
-                            {{ $module->name }}
-                        </h3>
-                    </div>
-                    <div class="panel-body form-padding-right">
-                        @includeIf($module->alias . '::accounts.product')
+            <div class="row">
+                <div class="col-lg-10 col-lg-offset-1">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title in-white">
+                                <i class="fa fa-{{ $module->icon }}"></i>
+                                {{ $module->name }}
+                            </h3>
+                        </div>
+                        <div class="panel-body form-padding-right">
+                            @includeIf($module->alias . '::accounts.product')
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         @endif
     @endforeach
     <center class="buttons">
@@ -75,7 +75,7 @@
 
     <script type="text/javascript">
 
-        $(function() {
+        $(function () {
             $('#product_key').focus();
         });
 
@@ -85,7 +85,7 @@
         }
 
         function onDeleteClick() {
-            sweetConfirm(function() {
+            sweetConfirm(function () {
                 submitAction('delete');
             });
         }

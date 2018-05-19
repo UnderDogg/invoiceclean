@@ -48,7 +48,7 @@
             <li>$account.customValue2</li>
         @endif
     </ul>
-</ul>
+    </ul>
 </div>
 <div class="col-md-6">
     <ul>

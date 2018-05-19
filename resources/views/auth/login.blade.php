@@ -60,7 +60,8 @@
                 <p>{{ trans('texts.login_or_existing') }}</p>
                 @foreach (App\Services\AuthService::$providers as $provider)
                     <div class="col-md-3 col-xs-6">
-                        <a href="{{ URL::to('auth/' . $provider) }}" class="btn btn-primary btn-lg" title="{{ $provider }}"
+                        <a href="{{ URL::to('auth/' . $provider) }}" class="btn btn-primary btn-lg"
+                           title="{{ $provider }}"
                            id="{{ strtolower($provider) }}LoginButton">
                             @if($provider == SOCIAL_GITHUB)
                                 <i class="fa fa-github-alt"></i>
@@ -108,7 +109,7 @@
 
 
     <script type="text/javascript">
-        $(function() {
+        $(function () {
             if ($('#email').val()) {
                 $('#password').focus();
             } else {
@@ -116,45 +117,45 @@
             }
 
             @if (Utils::isTimeTracker())
-                if (isStorageSupported()) {
-                    var selfHostUrl = localStorage.getItem('last:time_tracker:url');
-                    if (selfHostUrl) {
-                        location.href = selfHostUrl;
-                        return;
-                    }
-                    $('#email').change(function() {
-                        localStorage.setItem('last:time_tracker:email', $('#email').val());
-                    })
-                    var email = localStorage.getItem('last:time_tracker:email');
-                    if (email) {
-                        $('#email').val(email);
-                        $('#password').focus();
-                    }
+            if (isStorageSupported()) {
+                var selfHostUrl = localStorage.getItem('last:time_tracker:url');
+                if (selfHostUrl) {
+                    location.href = selfHostUrl;
+                    return;
                 }
+                $('#email').change(function () {
+                    localStorage.setItem('last:time_tracker:email', $('#email').val());
+                })
+                var email = localStorage.getItem('last:time_tracker:email');
+                if (email) {
+                    $('#email').val(email);
+                    $('#password').focus();
+                }
+            }
             @endif
         })
 
         @if (Utils::isTimeTracker())
-            function setSelfHostUrl() {
-                if (! isStorageSupported()) {
-                    swal("{{ trans('texts.local_storage_required') }}");
+        function setSelfHostUrl() {
+            if (!isStorageSupported()) {
+                swal("{{ trans('texts.local_storage_required') }}");
+                return;
+            }
+            swal({
+                title: "{{ trans('texts.set_self_hoat_url') }}",
+                input: 'text',
+                showCancelButton: true,
+                confirmButtonText: 'Save',
+            }).then(function (value) {
+                if (!value || value.indexOf('http') !== 0) {
+                    swal("{{ trans('texts.invalid_url') }}")
                     return;
                 }
-                swal({
-                    title: "{{ trans('texts.set_self_hoat_url') }}",
-                    input: 'text',
-                    showCancelButton: true,
-                    confirmButtonText: 'Save',
-                }).then(function (value) {
-                    if (! value || value.indexOf('http') !== 0) {
-                        swal("{{ trans('texts.invalid_url') }}")
-                        return;
-                    }
-                    value = value.replace(/\/+$/, '') + '/time_tracker';
-                    localStorage.setItem('last:time_tracker:url', value);
-                    location.reload();
-                }).catch(swal.noop);
-            }
+                value = value.replace(/\/+$/, '') + '/time_tracker';
+                localStorage.setItem('last:time_tracker:url', value);
+                location.reload();
+            }).catch(swal.noop);
+        }
         @endif
 
     </script>

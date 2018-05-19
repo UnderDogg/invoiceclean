@@ -21,32 +21,32 @@
         var invoiceFonts = {!! Cache::get('fonts') !!};
 
         var statementStartDate = moment("{{ $startDate }}");
-		var statementEndDate = moment("{{ $endDate }}");
+        var statementEndDate = moment("{{ $endDate }}");
         var dateRanges = {!! $account->present()->dateRangeOptions !!};
 
         function getPDFString(cb) {
             invoice.is_statement = true;
             invoice.image = window.accountLogo;
             invoice.features = {
-                  customize_invoice_design:{{ $account->hasFeature(FEATURE_CUSTOMIZE_INVOICE_DESIGN) ? 'true' : 'false' }},
-                  remove_created_by:{{ $account->hasFeature(FEATURE_REMOVE_CREATED_BY) ? 'true' : 'false' }},
-                  invoice_settings:{{ $account->hasFeature(FEATURE_INVOICE_SETTINGS) ? 'true' : 'false' }}
-              };
+                customize_invoice_design:{{ $account->hasFeature(FEATURE_CUSTOMIZE_INVOICE_DESIGN) ? 'true' : 'false' }},
+                remove_created_by:{{ $account->hasFeature(FEATURE_REMOVE_CREATED_BY) ? 'true' : 'false' }},
+                invoice_settings:{{ $account->hasFeature(FEATURE_INVOICE_SETTINGS) ? 'true' : 'false' }}
+            };
 
             generatePDF(invoice, invoiceDesign, true, cb);
         }
 
-        $(function() {
+        $(function () {
             if (isStorageSupported()) {
-				var lastRange = localStorage.getItem('last:statement_range');
+                var lastRange = localStorage.getItem('last:statement_range');
                 var lastStatusId = localStorage.getItem('last:statement_status_id');
                 var lastShowPayments = localStorage.getItem('last:statement_show_payments');
                 var lastShowAging = localStorage.getItem('last:statement_show_aging');
-				lastRange = dateRanges[lastRange];
-				if (lastRange) {
-					statementStartDate = lastRange[0];
-					statementEndDate = lastRange[1];
-				}
+                lastRange = dateRanges[lastRange];
+                if (lastRange) {
+                    statementStartDate = lastRange[0];
+                    statementEndDate = lastRange[1];
+                }
                 if (lastStatusId) {
                     $('#status_id').val(lastStatusId);
                 }
@@ -56,7 +56,7 @@
                 if (lastShowAging) {
                     $('#show_aging').prop('checked', true);
                 }
-			}
+            }
 
             // Initialize date range selector
             function cb(start, end, label) {
@@ -66,9 +66,9 @@
                 $('#start_date').val(start.format('YYYY-MM-DD'));
                 $('#end_date').val(end.format('YYYY-MM-DD'));
 
-				if (isStorageSupported() && label && label != "{{ trans('texts.custom_range') }}") {
-					localStorage.setItem('last:statement_range', label);
-				}
+                if (isStorageSupported() && label && label != "{{ trans('texts.custom_range') }}") {
+                    localStorage.setItem('last:statement_range', label);
+                }
 
                 refreshData();
             }
@@ -83,7 +83,7 @@
                 startDate: statementStartDate,
                 endDate: statementEndDate,
                 linkedCalendars: false,
-				ranges: dateRanges,
+                ranges: dateRanges,
             }, cb);
 
             cb(statementStartDate, statementEndDate);
@@ -107,7 +107,7 @@
                 '&show_aging=' + ($('#show_aging').is(':checked') ? '1' : '') +
                 '&json=true';
 
-            $.get(url, function(response) {
+            $.get(url, function (response) {
                 invoice = currentInvoice = JSON.parse(response);
                 refreshPDF();
             });
@@ -140,8 +140,8 @@
         </div>
 
         <ol class="breadcrumb pull-left">
-          <li>{{ link_to('/clients', trans('texts.clients')) }}</li>
-          <li class='active'>{{ $client->getDisplayName() }}</li>
+            <li>{{ link_to('/clients', trans('texts.clients')) }}</li>
+            <li class='active'>{{ $client->getDisplayName() }}</li>
         </ol>
 
         <p>&nbsp;</p>
@@ -168,7 +168,8 @@
 
             &nbsp;&nbsp;
 
-            <span id="reportrange" style="background: #f9f9f9; cursor: pointer; padding: 9px 14px; border: 1px solid #dfe0e1; margin-top: 0px;">
+            <span id="reportrange"
+                  style="background: #f9f9f9; cursor: pointer; padding: 9px 14px; border: 1px solid #dfe0e1; margin-top: 0px;">
                 <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>&nbsp;
                 <span></span> <b class="caret"></b>
             </span>

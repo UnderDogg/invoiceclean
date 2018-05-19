@@ -6,8 +6,8 @@ use App\Models\Company;
 use App\Ninja\Mailers\ContactMailer as Mailer;
 use App\Ninja\Repositories\AccountRepository;
 use Illuminate\Console\Command;
-use Utils;
 use Symfony\Component\Console\Input\InputOption;
+use Utils;
 
 /**
  * Class SendRenewalInvoices.
@@ -37,7 +37,7 @@ class SendRenewalInvoices extends Command
     /**
      * SendRenewalInvoices constructor.
      *
-     * @param Mailer            $mailer
+     * @param Mailer $mailer
      * @param AccountRepository $repo
      */
     public function __construct(Mailer $mailer, AccountRepository $repo)
@@ -50,7 +50,7 @@ class SendRenewalInvoices extends Command
 
     public function fire()
     {
-        $this->info(date('r').' Running SendRenewalInvoices...');
+        $this->info(date('r') . ' Running SendRenewalInvoices...');
 
         if ($database = $this->option('database')) {
             config(['database.default' => $database]);
@@ -58,12 +58,12 @@ class SendRenewalInvoices extends Command
 
         // get all accounts with plans expiring in 10 days
         $companies = Company::whereRaw("datediff(plan_expires, curdate()) = 10 and (plan = 'pro' or plan = 'enterprise')")
-                        ->orderBy('id')
-                        ->get();
+            ->orderBy('id')
+            ->get();
         $this->info($companies->count() . ' companies found renewing in 10 days');
 
         foreach ($companies as $company) {
-            if (! $company->accounts->count()) {
+            if (!$company->accounts->count()) {
                 continue;
             }
 
@@ -74,7 +74,7 @@ class SendRenewalInvoices extends Command
             $plan['num_users'] = $company->num_users;
             $plan['price'] = min($company->plan_price, Utils::getPlanPrice($plan));
 
-            if ($plan['plan'] == PLAN_FREE || ! $plan['plan'] || ! $plan['term'] || ! $plan['price']) {
+            if ($plan['plan'] == PLAN_FREE || !$plan['plan'] || !$plan['term'] || !$plan['price']) {
                 continue;
             }
 
@@ -102,8 +102,8 @@ class SendRenewalInvoices extends Command
         if ($errorEmail = env('ERROR_EMAIL')) {
             \Mail::raw('EOM', function ($message) use ($errorEmail, $database) {
                 $message->to($errorEmail)
-                        ->from(CONTACT_EMAIL)
-                        ->subject("SendRenewalInvoices [{$database}]: Finished successfully");
+                    ->from(CONTACT_EMAIL)
+                    ->subject("SendRenewalInvoices [{$database}]: Finished successfully");
             });
         }
     }

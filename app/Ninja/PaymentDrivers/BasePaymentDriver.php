@@ -5,16 +5,14 @@ namespace App\Ninja\PaymentDrivers;
 use App\Models\Account;
 use App\Models\AccountGatewaySettings;
 use App\Models\AccountGatewayToken;
-use App\Models\Country;
 use App\Models\GatewayType;
 use App\Models\License;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
-use Omnipay\Common\Item;
 use CreditCard;
 use DateTime;
 use Exception;
-use Omnipay;
+use Omnipay\Common\Item;
 use Request;
 use Session;
 use URL;
@@ -24,48 +22,24 @@ class BasePaymentDriver
 {
     public $invitation;
     public $accountGateway;
-
+    public $canRefundPayments = false;
     protected $gatewayType;
     protected $gateway;
     protected $customer;
     protected $sourceId;
     protected $input;
-
     protected $customerResponse;
     protected $tokenResponse;
     protected $purchaseResponse;
-
     protected $sourceReferenceParam = 'token';
     protected $customerReferenceParam;
     protected $transactionReferenceParam;
-
-    public $canRefundPayments = false;
 
     public function __construct($accountGateway = false, $invitation = false, $gatewayType = false)
     {
         $this->accountGateway = $accountGateway;
         $this->invitation = $invitation;
         $this->gatewayType = $gatewayType ?: $this->gatewayTypes()[0];
-    }
-
-    public function isGateway($gatewayId)
-    {
-        return $this->accountGateway->gateway_id == $gatewayId;
-    }
-
-    public function isValid()
-    {
-        return true;
-    }
-
-    // optionally pass a paymentMethod to determine the type from the token
-    protected function isGatewayType($gatewayType, $paymentMethod = false)
-    {
-        if ($paymentMethod) {
-            return $paymentMethod->gatewayType() == $gatewayType;
-        } else {
-            return $this->gatewayType === $gatewayType;
-        }
     }
 
     public function gatewayTypes()
@@ -75,47 +49,12 @@ class BasePaymentDriver
         ];
     }
 
-    public function handles($type)
+    public function isValid()
     {
-        return in_array($type, $this->gatewayTypes());
+        return true;
     }
 
-    // when set to true we won't pass the card details with the form
-    public function tokenize()
-    {
-        return false;
-    }
-
-    // set payment method as pending until confirmed
-    public function isTwoStep()
-    {
-        return false;
-    }
-
-    public function providerName()
-    {
-        return strtolower($this->accountGateway->gateway->provider);
-    }
-
-    protected function invoice()
-    {
-        return $this->invitation->invoice;
-    }
-
-    protected function contact()
-    {
-        return $this->invitation->contact;
-    }
-
-    protected function client()
-    {
-        return $this->invoice()->client;
-    }
-
-    protected function account()
-    {
-        return $this->client()->account;
-    }
+    // optionally pass a paymentMethod to determine the type from the token
 
     public function startPurchase($input = false, $sourceId = false)
     {
@@ -128,14 +67,14 @@ class BasePaymentDriver
 
         $gateway = $this->accountGateway->gateway;
 
-        if (! $this->meetsGatewayTypeLimits($this->gatewayType)) {
+        if (!$this->meetsGatewayTypeLimits($this->gatewayType)) {
             // The customer must have hacked the URL
             Session::flash('error', trans('texts.limits_not_met'));
 
             return redirect()->to('view/' . $this->invitation->invitation_key);
         }
 
-        if (! $this->isGatewayType(GATEWAY_TYPE_TOKEN)) {
+        if (!$this->isGatewayType(GATEWAY_TYPE_TOKEN)) {
             // apply gateway fees
             $invoicRepo = app('App\Ninja\Repositories\InvoiceRepository');
             $invoicRepo->setGatewayFee($this->invoice(), $this->gatewayType);
@@ -169,7 +108,7 @@ class BasePaymentDriver
         }
 
         $data = [
-            'details' => ! empty($input['details']) ? json_decode($input['details']) : false,
+            'details' => !empty($input['details']) ? json_decode($input['details']) : false,
             'accountGateway' => $this->accountGateway,
             'acceptedCreditCardTypes' => $this->accountGateway->getCreditcardTypes(),
             'gateway' => $gateway,
@@ -192,79 +131,52 @@ class BasePaymentDriver
         return view($this->paymentView(), $data);
     }
 
-    // check if a custom view exists for this provider
-    protected function paymentView()
+    protected function invoice()
     {
-        $gatewayTypeAlias = GatewayType::getAliasFromId($this->gatewayType);
-
-        $file = sprintf('%s/views/payments/%s/%s.blade.php', resource_path(), $this->providerName(), $gatewayTypeAlias);
-
-        if (file_exists($file)) {
-            return sprintf('payments.%s/%s', $this->providerName(), $gatewayTypeAlias);
-        } else {
-            return sprintf('payments.%s', $gatewayTypeAlias);
-        }
+        return $this->invitation->invoice;
     }
 
-    // check if a custom partial exists for this provider
-    public function partialView()
+    protected function meetsGatewayTypeLimits($gatewayTypeId)
     {
-        $file = sprintf('%s/views/payments/%s/partial.blade.php', resource_path(), $this->providerName());
-
-        if (file_exists($file)) {
-            return sprintf('payments.%s.partial', $this->providerName());
-        } else {
-            return false;
+        if (!$gatewayTypeId) {
+            return true;
         }
-    }
 
-    public function rules()
-    {
-        $rules = [];
+        $accountGatewaySettings = AccountGatewaySettings::scope(false, $this->invitation->account_id)
+            ->where('account_gateway_settings.gateway_type_id', '=', $gatewayTypeId)->first();
 
-        if ($this->isGatewayType(GATEWAY_TYPE_CREDIT_CARD)) {
-            $rules = array_merge($rules, [
-                'first_name' => 'required',
-                'last_name' => 'required',
-            ]);
+        if ($accountGatewaySettings) {
+            $invoice = $this->invoice();
 
-            // TODO check this is always true
-            if (! $this->tokenize()) {
-                $rules = array_merge($rules, [
-                    'card_number' => 'required',
-                    'expiration_month' => 'required',
-                    'expiration_year' => 'required',
-                    'cvv' => 'required',
-                ]);
+            if ($accountGatewaySettings->min_limit !== null && $invoice->balance < $accountGatewaySettings->min_limit) {
+                return false;
             }
 
-            if ($this->accountGateway->show_address) {
-                $rules = array_merge($rules, [
-                    'address1' => 'required',
-                    'city' => 'required',
-                    'postal_code' => 'required',
-                    'country_id' => 'required',
-                ]);
-
-                if ($this->account()->requiresAddressState()) {
-                    $rules['state'] = 'required';
-                }
+            if ($accountGatewaySettings->max_limit !== null && $invoice->balance > $accountGatewaySettings->max_limit) {
+                return false;
             }
         }
 
-        return $rules;
+        return true;
     }
 
-    protected function gateway()
+    // when set to true we won't pass the card details with the form
+
+    protected function isGatewayType($gatewayType, $paymentMethod = false)
     {
-        if ($this->gateway) {
-            return $this->gateway;
+        if ($paymentMethod) {
+            return $paymentMethod->gatewayType() == $gatewayType;
+        } else {
+            return $this->gatewayType === $gatewayType;
         }
+    }
 
-        $this->gateway = Omnipay::create($this->accountGateway->gateway->provider);
-        $this->gateway->initialize((array) $this->accountGateway->getConfig());
+    // set payment method as pending until confirmed
 
-        return $this->gateway;
+    public function shouldUseSource()
+    {
+        // Use Omnipay by default
+        return false;
     }
 
     public function completeOnsitePurchase($input = false, $paymentMethod = false)
@@ -278,7 +190,7 @@ class BasePaymentDriver
 
         // load or create token
         if ($this->isGatewayType(GATEWAY_TYPE_TOKEN)) {
-            if (! $paymentMethod) {
+            if (!$paymentMethod) {
                 $paymentMethod = PaymentMethod::clientId($this->client()->id)
                     ->wherePublicId($this->sourceId)
                     ->firstOrFail();
@@ -287,7 +199,7 @@ class BasePaymentDriver
             $invoicRepo = app('App\Ninja\Repositories\InvoiceRepository');
             $invoicRepo->setGatewayFee($this->invoice(), $paymentMethod->payment_type->gateway_type_id);
 
-            if (! $this->meetsGatewayTypeLimits($paymentMethod->payment_type->gateway_type_id)) {
+            if (!$this->meetsGatewayTypeLimits($paymentMethod->payment_type->gateway_type_id)) {
                 // The customer must have hacked the URL
                 Session::flash('error', trans('texts.limits_not_met'));
 
@@ -298,7 +210,7 @@ class BasePaymentDriver
                 $paymentMethod = $this->createToken();
             }
 
-            if (! $this->meetsGatewayTypeLimits($this->gatewayType)) {
+            if (!$this->meetsGatewayTypeLimits($this->gatewayType)) {
                 // The customer must have hacked the URL
                 Session::flash('error', trans('texts.limits_not_met'));
 
@@ -322,13 +234,13 @@ class BasePaymentDriver
             $items = null;
         }
         $response = $gateway->purchase($data)
-                        ->setItems($items)
-                        ->send();
-        $this->purchaseResponse = (array) $response->getData();
+            ->setItems($items)
+            ->send();
+        $this->purchaseResponse = (array)$response->getData();
 
         // parse the transaction reference
         if ($this->transactionReferenceParam) {
-            if (! empty($this->purchaseResponse[$this->transactionReferenceParam])) {
+            if (!empty($this->purchaseResponse[$this->transactionReferenceParam])) {
                 $ref = $this->purchaseResponse[$this->transactionReferenceParam];
             } else {
                 throw new Exception($response->getMessage() ?: trans('texts.payment_error'));
@@ -360,57 +272,31 @@ class BasePaymentDriver
         }
     }
 
-    private function paymentItems()
+    protected function gateway()
     {
-        $invoice = $this->invoice();
-        $items = [];
-        $total = 0;
-
-        foreach ($invoice->invoice_items as $invoiceItem) {
-            // Some gateways require quantity is an integer
-            if (floatval($invoiceItem->qty) != intval($invoiceItem->qty)) {
-                return null;
-            }
-
-            $item = new Item([
-                'name' => $invoiceItem->product_key,
-                'description' => substr($invoiceItem->notes, 0, 100),
-                'price' => $invoiceItem->cost,
-                'quantity' => $invoiceItem->qty,
-            ]);
-
-            $items[] = $item;
-
-            $total += $invoiceItem->cost * $invoiceItem->qty;
+        if ($this->gateway) {
+            return $this->gateway;
         }
 
-        if ($total != $invoice->getRequestedAmount()) {
-            $item = new Item([
-                'name' => trans('texts.taxes_and_fees'),
-                'description' => '',
-                'price' => $invoice->getRequestedAmount() - $total,
-                'quantity' => 1,
-            ]);
+        $this->gateway = Omnipay::create($this->accountGateway->gateway->provider);
+        $this->gateway->initialize((array)$this->accountGateway->getConfig());
 
-            $items[] = $item;
-        }
-
-        return $items;
+        return $this->gateway;
     }
 
     private function updateClient()
     {
-        if (! $this->isGatewayType(GATEWAY_TYPE_CREDIT_CARD)) {
+        if (!$this->isGatewayType(GATEWAY_TYPE_CREDIT_CARD)) {
             return;
         }
 
         // update the contact info
-        if (! $this->contact()->getFullName()) {
+        if (!$this->contact()->getFullName()) {
             $this->contact()->first_name = $this->input['first_name'];
             $this->contact()->last_name = $this->input['last_name'];
         }
 
-        if (! $this->contact()->email) {
+        if (!$this->contact()->email) {
             $this->contact()->email = $this->input['email'];
         }
 
@@ -442,6 +328,137 @@ class BasePaymentDriver
         if ($client->isDirty()) {
             $client->save();
         }
+    }
+
+    protected function contact()
+    {
+        return $this->invitation->contact;
+    }
+
+    protected function client()
+    {
+        return $this->invoice()->client;
+    }
+
+    protected function shouldCreateToken()
+    {
+        if ($this->isGatewayType(GATEWAY_TYPE_BANK_TRANSFER)) {
+            return true;
+        }
+
+        if (!$this->handles(GATEWAY_TYPE_TOKEN)) {
+            return false;
+        }
+
+        if ($this->account()->token_billing_type_id == TOKEN_BILLING_ALWAYS) {
+            return true;
+        }
+
+        return boolval(array_get($this->input, 'token_billing'));
+    }
+
+    // check if a custom view exists for this provider
+
+    public function handles($type)
+    {
+        return in_array($type, $this->gatewayTypes());
+    }
+
+    // check if a custom partial exists for this provider
+
+    protected function account()
+    {
+        return $this->client()->account;
+    }
+
+    public function createToken()
+    {
+        $account = $this->account();
+
+        if (!$customer = $this->customer()) {
+            $customer = new AccountGatewayToken();
+            $customer->account_id = $account->id;
+            $customer->contact_id = $this->invitation->contact_id;
+            $customer->account_gateway_id = $this->accountGateway->id;
+            $customer->client_id = $this->client()->id;
+            $customer = $this->creatingCustomer($customer);
+            $customer->save();
+        }
+
+        $paymentMethod = $this->createPaymentMethod($customer);
+
+        if ($paymentMethod) {
+            $customer->default_payment_method_id = $paymentMethod->id;
+            $customer->save();
+        }
+
+        return $paymentMethod;
+    }
+
+    public function customer($clientId = false)
+    {
+        if ($this->customer) {
+            return $this->customer;
+        }
+
+        if (!$clientId) {
+            $clientId = $this->client()->id;
+        }
+
+        $this->customer = AccountGatewayToken::clientAndGateway($clientId, $this->accountGateway->id)
+            ->with('payment_methods')
+            ->first();
+
+        if ($this->customer && $this->invitation) {
+            $this->customer = $this->checkCustomerExists($this->customer) ? $this->customer : null;
+        }
+
+        return $this->customer;
+    }
+
+    protected function checkCustomerExists($customer)
+    {
+        return true;
+    }
+
+    protected function creatingCustomer($customer)
+    {
+        return $customer;
+    }
+
+    public function createPaymentMethod($customer)
+    {
+        $paymentMethod = PaymentMethod::createNew($this->invitation);
+        $paymentMethod->contact_id = $this->contact()->id;
+        $paymentMethod->ip = Request::ip();
+        $paymentMethod->account_gateway_token_id = $customer->id;
+        $paymentMethod->setRelation('account_gateway_token', $customer);
+        $paymentMethod = $this->creatingPaymentMethod($paymentMethod);
+
+        if ($paymentMethod) {
+            // archive the old payment method
+            $oldPaymentMethod = PaymentMethod::clientId($this->client()->id)
+                ->wherePaymentTypeId($paymentMethod->payment_type_id)
+                ->first();
+
+            if ($oldPaymentMethod) {
+                $oldPaymentMethod->delete();
+            }
+
+            $paymentMethod->save();
+        }
+
+        return $paymentMethod;
+    }
+
+    protected function creatingPaymentMethod($paymentMethod)
+    {
+        return $paymentMethod;
+    }
+
+    public function isTwoStep()
+    {
+        return false;
     }
 
     protected function paymentDetails($paymentMethod = false)
@@ -498,7 +515,8 @@ class BasePaymentDriver
         if (isset($input['address1'])) {
             $hasShippingAddress = $this->accountGateway->show_shipping_address;
             $country = Utils::getFromCache($input['country_id'], 'countries');
-            $shippingCountry = $hasShippingAddress ? Utils::getFromCache($input['shipping_country_id'], 'countries') : $country;
+            $shippingCountry = $hasShippingAddress ? Utils::getFromCache($input['shipping_country_id'],
+                'countries') : $country;
 
             $data = array_merge($data, [
                 'billingAddress1' => trim($input['address1']),
@@ -548,29 +566,6 @@ class BasePaymentDriver
         ];
     }
 
-    public function shouldUseSource()
-    {
-        // Use Omnipay by default
-        return false;
-    }
-
-    protected function shouldCreateToken()
-    {
-        if ($this->isGatewayType(GATEWAY_TYPE_BANK_TRANSFER)) {
-            return true;
-        }
-
-        if (! $this->handles(GATEWAY_TYPE_TOKEN)) {
-            return false;
-        }
-
-        if ($this->account()->token_billing_type_id == TOKEN_BILLING_ALWAYS) {
-            return true;
-        }
-
-        return boolval(array_get($this->input, 'token_billing'));
-    }
-
     /*
     protected function tokenDetails()
     {
@@ -584,109 +579,47 @@ class BasePaymentDriver
     }
     */
 
-    public function customer($clientId = false)
+    public function isGateway($gatewayId)
     {
-        if ($this->customer) {
-            return $this->customer;
-        }
-
-        if (! $clientId) {
-            $clientId = $this->client()->id;
-        }
-
-        $this->customer = AccountGatewayToken::clientAndGateway($clientId, $this->accountGateway->id)
-                            ->with('payment_methods')
-                            ->first();
-
-        if ($this->customer && $this->invitation) {
-            $this->customer = $this->checkCustomerExists($this->customer) ? $this->customer : null;
-        }
-
-        return $this->customer;
+        return $this->accountGateway->gateway_id == $gatewayId;
     }
 
-    protected function checkCustomerExists($customer)
+    private function paymentItems()
     {
-        return true;
-    }
+        $invoice = $this->invoice();
+        $items = [];
+        $total = 0;
 
-    public function verifyBankAccount($client, $publicId, $amount1, $amount2)
-    {
-        throw new Exception('verifyBankAccount not implemented');
-    }
-
-    public function removePaymentMethod($paymentMethod)
-    {
-        $paymentMethod->delete();
-    }
-
-    // Some gateways (ie, Checkout.com and Braintree) require generating a token before paying for the invoice
-    public function createTransactionToken()
-    {
-        return null;
-    }
-
-    public function createToken()
-    {
-        $account = $this->account();
-
-        if (! $customer = $this->customer()) {
-            $customer = new AccountGatewayToken();
-            $customer->account_id = $account->id;
-            $customer->contact_id = $this->invitation->contact_id;
-            $customer->account_gateway_id = $this->accountGateway->id;
-            $customer->client_id = $this->client()->id;
-            $customer = $this->creatingCustomer($customer);
-            $customer->save();
-        }
-
-        $paymentMethod = $this->createPaymentMethod($customer);
-
-        if ($paymentMethod) {
-            $customer->default_payment_method_id = $paymentMethod->id;
-            $customer->save();
-        }
-
-        return $paymentMethod;
-    }
-
-    protected function creatingCustomer($customer)
-    {
-        return $customer;
-    }
-
-    public function createPaymentMethod($customer)
-    {
-        $paymentMethod = PaymentMethod::createNew($this->invitation);
-        $paymentMethod->contact_id = $this->contact()->id;
-        $paymentMethod->ip = Request::ip();
-        $paymentMethod->account_gateway_token_id = $customer->id;
-        $paymentMethod->setRelation('account_gateway_token', $customer);
-        $paymentMethod = $this->creatingPaymentMethod($paymentMethod);
-
-        if ($paymentMethod) {
-            // archive the old payment method
-            $oldPaymentMethod = PaymentMethod::clientId($this->client()->id)
-                ->wherePaymentTypeId($paymentMethod->payment_type_id)
-                ->first();
-
-            if ($oldPaymentMethod) {
-                $oldPaymentMethod->delete();
+        foreach ($invoice->invoice_items as $invoiceItem) {
+            // Some gateways require quantity is an integer
+            if (floatval($invoiceItem->qty) != intval($invoiceItem->qty)) {
+                return null;
             }
 
-            $paymentMethod->save();
+            $item = new Item([
+                'name' => $invoiceItem->product_key,
+                'description' => substr($invoiceItem->notes, 0, 100),
+                'price' => $invoiceItem->cost,
+                'quantity' => $invoiceItem->qty,
+            ]);
+
+            $items[] = $item;
+
+            $total += $invoiceItem->cost * $invoiceItem->qty;
         }
 
-        return $paymentMethod;
-    }
+        if ($total != $invoice->getRequestedAmount()) {
+            $item = new Item([
+                'name' => trans('texts.taxes_and_fees'),
+                'description' => '',
+                'price' => $invoice->getRequestedAmount() - $total,
+                'quantity' => 1,
+            ]);
 
-    protected function creatingPaymentMethod($paymentMethod)
-    {
-        return $paymentMethod;
-    }
+            $items[] = $item;
+        }
 
-    public function deleteToken()
-    {
+        return $items;
     }
 
     public function createPayment($ref = false, $paymentMethod = null)
@@ -694,7 +627,7 @@ class BasePaymentDriver
         $account = $this->account();
         $invitation = $this->invitation;
         $invoice = $this->invoice();
-        if (! $invoice->canBePaid()) {
+        if (!$invoice->canBePaid()) {
             return false;
         }
         $invoice->markSentIfUnsent();
@@ -728,8 +661,8 @@ class BasePaymentDriver
 
         if ($accountKey == env('NINJA_LICENSE_ACCOUNT_KEY')) {
             $this->createLicense($payment);
-        // TODO move this code
-        // enable pro plan for hosted users
+            // TODO move this code
+            // enable pro plan for hosted users
         } elseif ($invoice->account->isNinjaAccount()) {
             foreach ($invoice->invoice_items as $invoice_item) {
                 // Hacky, but invoices don't have meta fields to allow us to store this easily
@@ -750,7 +683,7 @@ class BasePaymentDriver
                 }
             }
 
-            if (! empty($plan)) {
+            if (!empty($plan)) {
                 $account = Account::with('users')->find($invoice->client->public_id);
                 $company = $account->company;
 
@@ -794,6 +727,13 @@ class BasePaymentDriver
         return $payment;
     }
 
+    protected function creatingPayment($payment, $paymentMethod)
+    {
+        return $payment;
+    }
+
+    // Some gateways (ie, Checkout.com and Braintree) require generating a token before paying for the invoice
+
     protected function createLicense($payment)
     {
         // TODO parse invoice to determine license
@@ -821,9 +761,94 @@ class BasePaymentDriver
         $invoiceItem->save();
     }
 
-    protected function creatingPayment($payment, $paymentMethod)
+    public function tokenize()
     {
-        return $payment;
+        return false;
+    }
+
+    public function createTransactionToken()
+    {
+        return null;
+    }
+
+    protected function paymentView()
+    {
+        $gatewayTypeAlias = GatewayType::getAliasFromId($this->gatewayType);
+
+        $file = sprintf('%s/views/payments/%s/%s.blade.php', resource_path(), $this->providerName(), $gatewayTypeAlias);
+
+        if (file_exists($file)) {
+            return sprintf('payments.%s/%s', $this->providerName(), $gatewayTypeAlias);
+        } else {
+            return sprintf('payments.%s', $gatewayTypeAlias);
+        }
+    }
+
+    public function providerName()
+    {
+        return strtolower($this->accountGateway->gateway->provider);
+    }
+
+    public function partialView()
+    {
+        $file = sprintf('%s/views/payments/%s/partial.blade.php', resource_path(), $this->providerName());
+
+        if (file_exists($file)) {
+            return sprintf('payments.%s.partial', $this->providerName());
+        } else {
+            return false;
+        }
+    }
+
+    public function rules()
+    {
+        $rules = [];
+
+        if ($this->isGatewayType(GATEWAY_TYPE_CREDIT_CARD)) {
+            $rules = array_merge($rules, [
+                'first_name' => 'required',
+                'last_name' => 'required',
+            ]);
+
+            // TODO check this is always true
+            if (!$this->tokenize()) {
+                $rules = array_merge($rules, [
+                    'card_number' => 'required',
+                    'expiration_month' => 'required',
+                    'expiration_year' => 'required',
+                    'cvv' => 'required',
+                ]);
+            }
+
+            if ($this->accountGateway->show_address) {
+                $rules = array_merge($rules, [
+                    'address1' => 'required',
+                    'city' => 'required',
+                    'postal_code' => 'required',
+                    'country_id' => 'required',
+                ]);
+
+                if ($this->account()->requiresAddressState()) {
+                    $rules['state'] = 'required';
+                }
+            }
+        }
+
+        return $rules;
+    }
+
+    public function verifyBankAccount($client, $publicId, $amount1, $amount2)
+    {
+        throw new Exception('verifyBankAccount not implemented');
+    }
+
+    public function removePaymentMethod($paymentMethod)
+    {
+        $paymentMethod->delete();
+    }
+
+    public function deleteToken()
+    {
     }
 
     public function refundPayment($payment, $amount = 0)
@@ -834,7 +859,7 @@ class BasePaymentDriver
             $amount = $payment->getCompletedAmount();
         }
 
-        if (! $amount) {
+        if (!$amount) {
             return false;
         }
 
@@ -873,16 +898,6 @@ class BasePaymentDriver
         return $amount == $payment->amount;
     }
 
-    protected function createLocalPayment($payment)
-    {
-        return $payment;
-    }
-
-    protected function updateClientFromOffsite($transRef, $paymentRef)
-    {
-        // do nothing
-    }
-
     public function completeOffsitePurchase($input)
     {
         $this->input = $input;
@@ -895,7 +910,7 @@ class BasePaymentDriver
 
             if ($response->isCancelled()) {
                 return false;
-            } elseif (! $response->isSuccessful()) {
+            } elseif (!$response->isSuccessful()) {
                 throw new Exception($response->getMessage());
             }
         } else {
@@ -905,23 +920,28 @@ class BasePaymentDriver
         $this->updateClientFromOffsite($transRef, $paymentRef);
 
         // check invoice still has balance
-        if (! floatval($this->invoice()->balance)) {
+        if (!floatval($this->invoice()->balance)) {
             throw new Exception(trans('texts.payment_error_code', ['code' => 'NB']));
         }
 
         // check this isn't a duplicate transaction reference
         if (Payment::whereAccountId($this->invitation->account_id)
-                ->whereTransactionReference($paymentRef)
-                ->first()) {
+            ->whereTransactionReference($paymentRef)
+            ->first()) {
             throw new Exception(trans('texts.payment_error_code', ['code' => 'DT']));
         }
 
         return $this->createPayment($paymentRef);
     }
 
+    protected function updateClientFromOffsite($transRef, $paymentRef)
+    {
+        // do nothing
+    }
+
     public function tokenLinks()
     {
-        if (! $this->customer()) {
+        if (!$this->customer()) {
             return [];
         }
 
@@ -933,11 +953,11 @@ class BasePaymentDriver
                 continue;
             }
 
-            if (! $this->meetsGatewayTypeLimits($paymentMethod->payment_type->gateway_type_id)) {
+            if (!$this->meetsGatewayTypeLimits($paymentMethod->payment_type->gateway_type_id)) {
                 continue;
             }
 
-            $url = URL::to("/payment/{$this->invitation->invitation_key}/token/".$paymentMethod->public_id);
+            $url = URL::to("/payment/{$this->invitation->invitation_key}/token/" . $paymentMethod->public_id);
 
             if ($paymentMethod->payment_type_id == PAYMENT_TYPE_ACH) {
                 if ($paymentMethod->bank_name) {
@@ -971,7 +991,7 @@ class BasePaymentDriver
                 continue;
             }
 
-            if (! $this->meetsGatewayTypeLimits($gatewayTypeId)) {
+            if (!$this->meetsGatewayTypeLimits($gatewayTypeId)) {
                 continue;
             }
 
@@ -1007,35 +1027,6 @@ class BasePaymentDriver
         return $links;
     }
 
-    public function supportsGatewayType($gatewayTypeId)
-    {
-        return in_array($gatewayTypeId, $this->gatewayTypes());
-    }
-
-    protected function meetsGatewayTypeLimits($gatewayTypeId)
-    {
-        if (! $gatewayTypeId) {
-            return true;
-        }
-
-        $accountGatewaySettings = AccountGatewaySettings::scope(false, $this->invitation->account_id)
-            ->where('account_gateway_settings.gateway_type_id', '=', $gatewayTypeId)->first();
-
-        if ($accountGatewaySettings) {
-            $invoice = $this->invoice();
-
-            if ($accountGatewaySettings->min_limit !== null && $invoice->balance < $accountGatewaySettings->min_limit) {
-                return false;
-            }
-
-            if ($accountGatewaySettings->max_limit !== null && $invoice->balance > $accountGatewaySettings->max_limit) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     protected function paymentUrl($gatewayTypeAlias)
     {
         $account = $this->account();
@@ -1044,8 +1035,18 @@ class BasePaymentDriver
         return $url;
     }
 
+    public function supportsGatewayType($gatewayTypeId)
+    {
+        return in_array($gatewayTypeId, $this->gatewayTypes());
+    }
+
     public function handleWebHook($input)
     {
         throw new Exception('Unsupported gateway');
+    }
+
+    protected function createLocalPayment($payment)
+    {
+        return $payment;
     }
 }

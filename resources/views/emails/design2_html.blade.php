@@ -13,9 +13,11 @@
     <tr>
         <td style="border-collapse: collapse;">
             <table cellpadding="10" cellspacing="0" border="0" bgcolor="#F4F5F5" width="600" align="center"
-                class="header" style="border-top-width: 6px; border-top-color: {{ $account->primary_color ?: '#2E2B2B' }}; border-top-style: solid;">
+                   class="header"
+                   style="border-top-width: 6px; border-top-color: {{ $account->primary_color ?: '#2E2B2B' }}; border-top-style: solid;">
                 <tr>
-                    <td class="logo" width="208" style="border-collapse: collapse; vertical-align: middle;" valign="middle">
+                    <td class="logo" width="208" style="border-collapse: collapse; vertical-align: middle;"
+                        valign="middle">
                         @include('emails.partials.account_logo')
                     </td>
                     <td width="183" style="border-collapse: collapse; vertical-align: middle;" valign="middle">
@@ -31,7 +33,7 @@
                                             {{ utrans('texts.due_by', ['date' => $account->formatDate($invoice->partial_due_date ?: $invoice->due_date)]) }}
                                         @endif
                                     @endif
-                                </span><br />
+                                </span><br/>
                             @endif
                             <span style="font-size: 18px;">
                                 {{ trans("texts.{$entityType}") }} {{ $invoice->invoice_number }}
@@ -43,7 +45,7 @@
                             @if (! isset($isRefund) || ! $isRefund)
                                 <span style="font-size: 15px; color: #231F20;">
                                     {{ trans('texts.' . $invoice->present()->balanceDueLabel) }}:
-                                </span><br />
+                                </span><br/>
                                 <span class="total" style="font-size: 26px; display: block;margin-top: 5px;">
                                     {{ $account->formatMoney($invoice->getRequestedAmount(), $client) }}
                                 </span>
@@ -67,9 +69,10 @@
             {!! trans('texts.ninja_email_footer', ['site' => link_to(NINJA_WEB_URL . '?utm_source=email_footer', APP_NAME)]) !!}
         @else
             {{ $account->present()->address }}
-            <br />
+            <br/>
             @if ($account->website)
-                <strong><a href="{{ $account->present()->website }}" style="color: #A7A6A6; text-decoration: none; font-weight: bold; font-size: 10px;">{{ $account->website }}</a></strong>
+                <strong><a href="{{ $account->present()->website }}"
+                           style="color: #A7A6A6; text-decoration: none; font-weight: bold; font-size: 10px;">{{ $account->website }}</a></strong>
             @endif
         @endif
     </p>

@@ -2,7 +2,6 @@
 
 namespace App\Models\Traits;
 
-use Carbon;
 use Utils;
 
 /**
@@ -14,13 +13,13 @@ trait Inviteable
     // we need to make sure it's served from our site
     /**
      * @param string $type
-     * @param bool   $forceOnsite
+     * @param bool $forceOnsite
      *
      * @return string
      */
     public function getLink($type = 'view', $forceOnsite = false, $forcePlain = false)
     {
-        if (! $this->account) {
+        if (!$this->account) {
             $this->load('account');
         }
 
@@ -37,17 +36,17 @@ trait Inviteable
         }
 
         if ($account->hasFeature(FEATURE_CUSTOM_URL)) {
-            if (Utils::isNinjaProd() && ! Utils::isReseller()) {
+            if (Utils::isNinjaProd() && !Utils::isReseller()) {
                 $url = $account->present()->clientPortalLink();
             }
 
-            if ($iframe_url && ! $forceOnsite) {
+            if ($iframe_url && !$forceOnsite) {
                 if ($account->is_custom_domain) {
                     $url = $iframe_url;
                 } else {
                     return "{$iframe_url}?{$this->invitation_key}/{$type}";
                 }
-            } elseif ($this->account->subdomain && ! $forcePlain) {
+            } elseif ($this->account->subdomain && !$forcePlain) {
                 $url = Utils::replaceSubdomain($url, $account->subdomain);
             }
         }

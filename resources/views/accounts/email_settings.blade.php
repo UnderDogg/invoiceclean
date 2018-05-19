@@ -116,7 +116,8 @@
         </center>
     @endif
 
-    <div class="modal fade" id="rawModal" tabindex="-1" role="dialog" aria-labelledby="rawModalLabel" aria-hidden="true">
+    <div class="modal fade" id="rawModal" tabindex="-1" role="dialog" aria-labelledby="rawModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog" style="width:800px">
             <div class="modal-content">
                 <div class="modal-header">
@@ -125,22 +126,25 @@
                 </div>
 
                 <div class="container" style="width: 100%; padding-bottom: 0px !important">
-                <div class="panel panel-default">
-                <div class="modal-body">
-                    <textarea id="raw-textarea" rows="20" style="width:100%"></textarea>
-                </div>
-                </div>
+                    <div class="panel panel-default">
+                        <div class="modal-body">
+                            <textarea id="raw-textarea" rows="20" style="width:100%"></textarea>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">{{ trans('texts.close') }}</button>
-                    <button type="button" onclick="updateRaw()" class="btn btn-success" data-dismiss="modal">{{ trans('texts.update') }}</button>
+                    <button type="button" class="btn btn-default"
+                            data-dismiss="modal">{{ trans('texts.close') }}</button>
+                    <button type="button" onclick="updateRaw()" class="btn btn-success"
+                            data-dismiss="modal">{{ trans('texts.update') }}</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="designHelpModal" tabindex="-1" role="dialog" aria-labelledby="designHelpModalLabel" aria-hidden="true">
+    <div class="modal fade" id="designHelpModal" tabindex="-1" role="dialog" aria-labelledby="designHelpModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog" style="min-width:150px">
             <div class="modal-content">
                 <div class="modal-header">
@@ -149,28 +153,29 @@
                 </div>
 
                 <div class="container" style="width: 100%; padding-bottom: 0px !important">
-                <div class="panel panel-default">
-                <div class="panel-body">
-                    <div class="row" style="text-align:center">
-                        <div class="col-md-4">
-                            <h4>{{ trans('texts.plain') }}</h4><br/>
-                            <img src="{{ asset('images/emails/plain.png') }}" class="img-responsive"/>
-                        </div>
-                        <div class="col-md-4">
-                            <h4>{{ trans('texts.light') }}</h4><br/>
-                            <img src="{{ asset('images/emails/light.png') }}" class="img-responsive"/>
-                        </div>
-                        <div class="col-md-4">
-                            <h4>{{ trans('texts.dark') }}</h4><br/>
-                            <img src="{{ asset('images/emails/dark.png') }}" class="img-responsive"/>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="row" style="text-align:center">
+                                <div class="col-md-4">
+                                    <h4>{{ trans('texts.plain') }}</h4><br/>
+                                    <img src="{{ asset('images/emails/plain.png') }}" class="img-responsive"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <h4>{{ trans('texts.light') }}</h4><br/>
+                                    <img src="{{ asset('images/emails/light.png') }}" class="img-responsive"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <h4>{{ trans('texts.dark') }}</h4><br/>
+                                    <img src="{{ asset('images/emails/dark.png') }}" class="img-responsive"/>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                </div>
-                </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">{{ trans('texts.close') }}</button>
+                    <button type="button" class="btn btn-primary"
+                            data-dismiss="modal">{{ trans('texts.close') }}</button>
                 </div>
 
             </div>
@@ -182,16 +187,16 @@
     <script type="text/javascript">
 
         var editor = false;
-        $(function() {
+        $(function () {
             editor = new Quill('#signatureEditor', {
                 modules: {
-                    'toolbar': { container: '#signatureToolbar' },
+                    'toolbar': {container: '#signatureToolbar'},
                     'link-tooltip': true
                 },
                 theme: 'snow'
             });
             editor.setHTML($('#email_footer').val());
-            editor.on('text-change', function(delta, source) {
+            editor.on('text-change', function (delta, source) {
                 if (source == 'api') {
                     return;
                 }
@@ -217,7 +222,7 @@
             $('#email_footer').val(value);
         }
 
-        $('.email_design_id .input-group-addon').click(function() {
+        $('.email_design_id .input-group-addon').click(function () {
             $('#designHelpModal').modal('show');
         });
 

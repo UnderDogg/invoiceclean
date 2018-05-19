@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Utils;
 use Symfony\Component\Console\Input\InputOption;
+use Utils;
 
 /**
  * Class ResetData.
@@ -25,7 +25,7 @@ class ResetData extends Command
     {
         $this->info(date('r') . ' Running ResetData...');
 
-        if (! Utils::isNinjaDev()) {
+        if (!Utils::isNinjaDev()) {
             return;
         }
 

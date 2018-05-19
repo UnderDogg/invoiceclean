@@ -2,11 +2,11 @@
 
 namespace App\Ninja\Repositories;
 
-use App\Models\Product;
 use App\Events\ProductWasCreated;
 use App\Events\ProductWasUpdated;
-use Utils;
+use App\Models\Product;
 use DB;
+use Utils;
 
 class ProductRepository extends BaseRepository
 {
@@ -18,34 +18,34 @@ class ProductRepository extends BaseRepository
     public function all()
     {
         return Product::scope()
-                ->withTrashed()
-                ->where('is_deleted', '=', false)
-                ->get();
+            ->withTrashed()
+            ->where('is_deleted', '=', false)
+            ->get();
     }
 
     public function find($accountId, $filter = null)
     {
         $query = DB::table('products')
-                ->where('products.account_id', '=', $accountId)
-                ->select(
-                    'products.public_id',
-                    'products.product_key',
-                    'products.notes',
-                    'products.cost',
-                    'products.tax_name1 as tax_name',
-                    'products.tax_rate1 as tax_rate',
-                    'products.deleted_at',
-                    'products.is_deleted',
-                    'products.custom_value1',
-                    'products.custom_value2'
-                );
+            ->where('products.account_id', '=', $accountId)
+            ->select(
+                'products.public_id',
+                'products.product_key',
+                'products.notes',
+                'products.cost',
+                'products.tax_name1 as tax_name',
+                'products.tax_rate1 as tax_rate',
+                'products.deleted_at',
+                'products.is_deleted',
+                'products.custom_value1',
+                'products.custom_value2'
+            );
 
         if ($filter) {
             $query->where(function ($query) use ($filter) {
-                $query->where('products.product_key', 'like', '%'.$filter.'%')
-                      ->orWhere('products.notes', 'like', '%'.$filter.'%')
-                      ->orWhere('products.custom_value1', 'like', '%'.$filter.'%')
-                      ->orWhere('products.custom_value2', 'like', '%'.$filter.'%');
+                $query->where('products.product_key', 'like', '%' . $filter . '%')
+                    ->orWhere('products.notes', 'like', '%' . $filter . '%')
+                    ->orWhere('products.custom_value1', 'like', '%' . $filter . '%')
+                    ->orWhere('products.custom_value2', 'like', '%' . $filter . '%');
             });
         }
 
@@ -93,7 +93,7 @@ class ProductRepository extends BaseRepository
         $products = Product::scope()->get();
 
         foreach ($products as $product) {
-            if (! $product->product_key) {
+            if (!$product->product_key) {
                 continue;
             }
 

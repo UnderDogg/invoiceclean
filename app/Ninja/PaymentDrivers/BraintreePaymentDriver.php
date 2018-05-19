@@ -2,18 +2,18 @@
 
 namespace App\Ninja\PaymentDrivers;
 
+use App\Models\GatewayType;
+use App\Models\PaymentType;
 use Braintree\Customer;
 use Exception;
 use Session;
 use Utils;
-use App\Models\GatewayType;
-use App\Models\PaymentType;
 
 class BraintreePaymentDriver extends BasePaymentDriver
 {
+    public $canRefundPayments = true;
     protected $customerReferenceParam = 'customerId';
     protected $sourceReferenceParam = 'paymentMethodToken';
-    public $canRefundPayments = true;
 
     public function gatewayTypes()
     {
@@ -47,52 +47,7 @@ class BraintreePaymentDriver extends BasePaymentDriver
             Session::put($this->invitation->id . 'device_data', $input['device_data']);
             */
 
-            $data['details'] = ! empty($input['device_data']) ? json_decode($input['device_data']) : false;
-        }
-
-        return $data;
-    }
-
-    protected function checkCustomerExists($customer)
-    {
-        if (! parent::checkCustomerExists($customer)) {
-            return false;
-        }
-
-        $customer = $this->gateway()->findCustomer($customer->token)
-            ->send()
-            ->getData();
-
-        return $customer instanceof Customer;
-    }
-
-    protected function paymentUrl($gatewayTypeAlias)
-    {
-        $url = parent::paymentUrl($gatewayTypeAlias);
-
-        if (GatewayType::getIdFromAlias($gatewayTypeAlias) === GATEWAY_TYPE_PAYPAL) {
-            $url .= '#braintree_paypal';
-        }
-
-        return $url;
-    }
-
-    protected function paymentDetails($paymentMethod = false)
-    {
-        $data = parent::paymentDetails($paymentMethod);
-
-        $deviceData = array_get($this->input, 'device_data') ?: Session::get($this->invitation->id . 'device_data');
-
-        if ($deviceData) {
-            $data['device_data'] = $deviceData;
-        }
-
-        if ($this->isGatewayType(GATEWAY_TYPE_PAYPAL, $paymentMethod)) {
-            $data['ButtonSource'] = 'InvoiceNinja_SP';
-        }
-
-        if (! $paymentMethod && ! empty($this->input['sourceToken'])) {
-            $data['token'] = $this->input['sourceToken'];
+            $data['details'] = !empty($input['device_data']) ? json_decode($input['device_data']) : false;
         }
 
         return $data;
@@ -133,6 +88,27 @@ class BraintreePaymentDriver extends BasePaymentDriver
         return parent::createToken();
     }
 
+    protected function paymentDetails($paymentMethod = false)
+    {
+        $data = parent::paymentDetails($paymentMethod);
+
+        $deviceData = array_get($this->input, 'device_data') ?: Session::get($this->invitation->id . 'device_data');
+
+        if ($deviceData) {
+            $data['device_data'] = $deviceData;
+        }
+
+        if ($this->isGatewayType(GATEWAY_TYPE_PAYPAL, $paymentMethod)) {
+            $data['ButtonSource'] = 'InvoiceNinja_SP';
+        }
+
+        if (!$paymentMethod && !empty($this->input['sourceToken'])) {
+            $data['token'] = $this->input['sourceToken'];
+        }
+
+        return $data;
+    }
+
     private function customerData()
     {
         return [
@@ -150,6 +126,63 @@ class BraintreePaymentDriver extends BasePaymentDriver
         $customer->token = $this->tokenResponse->customerId;
 
         return $customer;
+    }
+
+    public function removePaymentMethod($paymentMethod)
+    {
+        parent::removePaymentMethod($paymentMethod);
+
+        $response = $this->gateway()->deletePaymentMethod([
+            'token' => $paymentMethod->source_reference,
+        ])->send();
+
+        if ($response->isSuccessful()) {
+            return true;
+        } else {
+            throw new Exception($response->getMessage());
+        }
+    }
+
+    public function isValid()
+    {
+        try {
+            $this->createTransactionToken();
+            return true;
+        } catch (Exception $exception) {
+            return get_class($exception);
+        }
+    }
+
+    public function createTransactionToken()
+    {
+        return $this->gateway()
+            ->clientToken()
+            ->send()
+            ->getToken();
+    }
+
+    protected function checkCustomerExists($customer)
+    {
+        if (!parent::checkCustomerExists($customer)) {
+            return false;
+        }
+
+        $customer = $this->gateway()->findCustomer($customer->token)
+            ->send()
+            ->getData();
+
+        return $customer instanceof Customer;
+    }
+
+    protected function paymentUrl($gatewayTypeAlias)
+    {
+        $url = parent::paymentUrl($gatewayTypeAlias);
+
+        if (GatewayType::getIdFromAlias($gatewayTypeAlias) === GATEWAY_TYPE_PAYPAL) {
+            $url .= '#braintree_paypal';
+        }
+
+        return $url;
     }
 
     protected function creatingPaymentMethod($paymentMethod)
@@ -172,24 +205,9 @@ class BraintreePaymentDriver extends BasePaymentDriver
         return $paymentMethod;
     }
 
-    public function removePaymentMethod($paymentMethod)
-    {
-        parent::removePaymentMethod($paymentMethod);
-
-        $response = $this->gateway()->deletePaymentMethod([
-            'token' => $paymentMethod->source_reference,
-        ])->send();
-
-        if ($response->isSuccessful()) {
-            return true;
-        } else {
-            throw new Exception($response->getMessage());
-        }
-    }
-
     protected function attemptVoidPayment($response, $payment, $amount)
     {
-        if (! parent::attemptVoidPayment($response, $payment, $amount)) {
+        if (!parent::attemptVoidPayment($response, $payment, $amount)) {
             return false;
         }
 
@@ -203,24 +221,6 @@ class BraintreePaymentDriver extends BasePaymentDriver
         }
 
         return false;
-    }
-
-    public function createTransactionToken()
-    {
-        return $this->gateway()
-                ->clientToken()
-                ->send()
-                ->getToken();
-    }
-
-    public function isValid()
-    {
-        try {
-            $this->createTransactionToken();
-            return true;
-        } catch (Exception $exception) {
-            return get_class($exception);
-        }
     }
 
 }
