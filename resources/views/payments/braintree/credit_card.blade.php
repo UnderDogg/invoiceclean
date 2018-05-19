@@ -4,8 +4,8 @@
     @parent
 
     <script type="text/javascript" src="https://js.braintreegateway.com/js/braintree-2.23.0.min.js"></script>
-    <script type="text/javascript" >
-        $(function() {
+    <script type="text/javascript">
+        $(function () {
             var $form = $('.payment-form');
             $form.unbind('submit');
             braintree.setup("{{ $transactionToken }}", "custom", {
@@ -35,7 +35,7 @@
                         }
                     }
                 },
-                onError: function(e) {
+                onError: function (e) {
                     $form.find('button').prop('disabled', false);
 
                     // Show the errors on the form
@@ -56,7 +56,7 @@
                         $('#js-error-message').html(e.message).fadeIn();
                     }
                 },
-                onPaymentMethodReceived: function(event) {
+                onPaymentMethodReceived: function (event) {
                     if ($form.find('button').is(':disabled')) {
                         event.preventDefault();
                         return false;

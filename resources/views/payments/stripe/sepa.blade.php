@@ -5,8 +5,8 @@
 
     <script src="https://js.stripe.com/v3/"></script>
     <script type="text/javascript">
-        $(function() {
-            $('.payment-form').submit(function(event) {
+        $(function () {
+            $('.payment-form').submit(function (event) {
                 // https://stripe.com/docs/sources/sepa-debit
                 var stripe = Stripe('{{ $accountGateway->getPublishableKey() }}');
                 stripe.createSource({
@@ -18,10 +18,10 @@
                     owner: {
                         name: '{{ $account->getPrimaryUser()->getFullName() }}',
                     },
-                }).then(function(result) {
+                }).then(function (result) {
                     console.log('create source: result');
                     console.log(result);
-                }).failure(function(result) {
+                }).failure(function (result) {
                     console.log('create source: error');
                     console.log(result);
                 });

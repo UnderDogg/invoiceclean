@@ -7,8 +7,8 @@
         <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
         <script type="text/javascript">
             Stripe.setPublishableKey('{{ $accountGateway->getPublishableKey() }}');
-            $(function() {
-                $('.payment-form').unbind('submit').submit(function(event) {
+            $(function () {
+                $('.payment-form').unbind('submit').submit(function (event) {
                     event.preventDefault();
 
                     if ($('[name=plaidAccountId]').length) {

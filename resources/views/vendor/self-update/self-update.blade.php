@@ -27,28 +27,28 @@
                 </div>
             </div>
             @if($updateAvailable)
-            <div class="row">
-                <div class="col-lg-12">
-                    <br/>
-                    <form name="download-update-form" action="{{ url('self-update') }}" method="post">
-                        {{ csrf_field() }}
-                        <input type="hidden" name="action" id="update-action" value="update"/>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary" id="do-updade">
-                                {{ trans('texts.update_invoiceninja_update_start') }}
-                            </button>
-                        </div>
-                    </form>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <br/>
+                        <form name="download-update-form" action="{{ url('self-update') }}" method="post">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="action" id="update-action" value="update"/>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary" id="do-updade">
+                                    {{ trans('texts.update_invoiceninja_update_start') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
             @endif
         </div>
     </div>
     <script type="text/javascript">
-        $('#download-update').click(function (){
+        $('#download-update').click(function () {
             $('#update-action').val('download');
         });
-        $('#do-update').click(function (){
+        $('#do-update').click(function () {
             $('#update-action').val('update');
         });
     </script>

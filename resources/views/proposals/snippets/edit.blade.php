@@ -6,9 +6,9 @@
     @include('proposals.grapesjs_header')
 
     <style>
-    .icon-select {
-        font-family: FontAwesome, sans-serif;
-    }
+        .icon-select {
+            font-family: FontAwesome, sans-serif;
+        }
     </style>
 
 @stop
@@ -34,26 +34,26 @@
     </span>
 
     <div class="row">
-		<div class="col-lg-12">
+        <div class="col-lg-12">
             <div class="panel panel-default">
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        {!! Former::text('name') !!}
-                        {!! Former::select('proposal_category_id')->addOption('', '')
-                                ->label(trans('texts.category'))
-                                ->addGroupClass('category-select') !!}
-                        {!! Former::select('icon')
-                                ->addGroupClass('icon-select')
-                                ->addOption('', '')
-                                ->options($icons) !!}
-                    </div>
-                    <div class="col-md-6">
-                        {!! Former::textarea('private_notes')
-                                ->style('height:160px') !!}
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {!! Former::text('name') !!}
+                            {!! Former::select('proposal_category_id')->addOption('', '')
+                                    ->label(trans('texts.category'))
+                                    ->addGroupClass('category-select') !!}
+                            {!! Former::select('icon')
+                                    ->addGroupClass('icon-select')
+                                    ->addOption('', '')
+                                    ->options($icons) !!}
+                        </div>
+                        <div class="col-md-6">
+                            {!! Former::textarea('private_notes')
+                                    ->style('height:160px') !!}
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     </div>
@@ -76,38 +76,38 @@
 
     <script type="text/javascript">
 
-    var categories = {!! $categories !!};
-    var categoryMap = {};
+        var categories = {!! $categories !!};
+        var categoryMap = {};
 
-    function onFormSubmit() {
-        $('#html').val(grapesjsEditor.getHtml());
-        $('#css').val(grapesjsEditor.getCss());
+        function onFormSubmit() {
+            $('#html').val(grapesjsEditor.getHtml());
+            $('#css').val(grapesjsEditor.getCss());
 
-        return true;
-    }
+            return true;
+        }
 
-    $(function() {
-        var categoryId = {{ $categoryPublicId ?: 0 }};
-        var $proposal_categorySelect = $('select#proposal_category_id');
-        @if (Auth::user()->can('create', ENTITY_PROPOSAL_CATEGORY))
+        $(function () {
+            var categoryId = {{ $categoryPublicId ?: 0 }};
+            var $proposal_categorySelect = $('select#proposal_category_id');
+            @if (Auth::user()->can('create', ENTITY_PROPOSAL_CATEGORY))
             $proposal_categorySelect.append(new Option("{{ trans('texts.create_proposal_category') }}: $name", '-1'));
-        @endif
-        for (var i = 0; i < categories.length; i++) {
-            var category = categories[i];
-            categoryMap[category.public_id] = category;
-            $proposal_categorySelect.append(new Option(category.name, category.public_id));
-        }
-        @include('partials/entity_combobox', ['entityType' => ENTITY_PROPOSAL_CATEGORY])
-        if (categoryId) {
-            var category = categoryMap[categoryId];
-            setComboboxValue($('.category-select'), category.public_id, category.name);
-        }
+                    @endif
+            for (var i = 0; i < categories.length; i++) {
+                var category = categories[i];
+                categoryMap[category.public_id] = category;
+                $proposal_categorySelect.append(new Option(category.name, category.public_id));
+            }
+            @include('partials/entity_combobox', ['entityType' => ENTITY_PROPOSAL_CATEGORY])
+            if (categoryId) {
+                var category = categoryMap[categoryId];
+                setComboboxValue($('.category-select'), category.public_id, category.name);
+            }
 
-        $('#icon').combobox();
-    })
+            $('#icon').combobox();
+        })
 
-</script>
+    </script>
 
-@include('proposals.grapesjs', ['entity' => $snippet])
+    @include('proposals.grapesjs', ['entity' => $snippet])
 
 @stop

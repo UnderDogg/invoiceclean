@@ -28,18 +28,18 @@
     </span>
 
     <div class="row">
-		<div class="col-lg-12">
+        <div class="col-lg-12">
             <div class="panel panel-default">
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        {!! Former::text('name') !!}
-                    </div>
-                    <div class="col-md-6">
-                        {!! Former::textarea('private_notes') !!}
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {!! Former::text('name') !!}
+                        </div>
+                        <div class="col-md-6">
+                            {!! Former::textarea('private_notes') !!}
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     </div>
@@ -79,49 +79,49 @@
     <div id="gjs"></div>
 
     <script type="text/javascript">
-    var customTemplates = {!! $customTemplates !!};
-    var customTemplateMap = {};
+        var customTemplates = {!! $customTemplates !!};
+        var customTemplateMap = {};
 
-    var defaultTemplates = {!! $defaultTemplates !!};
-    var defaultTemplateMap = {};
+        var defaultTemplates = {!! $defaultTemplates !!};
+        var defaultTemplateMap = {};
 
-    function onFormSubmit() {
-        $('#html').val(grapesjsEditor.getHtml());
-        $('#css').val(grapesjsEditor.getCss());
+        function onFormSubmit() {
+            $('#html').val(grapesjsEditor.getHtml());
+            $('#css').val(grapesjsEditor.getCss());
 
-        return true;
-    }
-
-    function onTemplateSelectChange() {
-        var templateId = $('.template-select').val();
-        var group = $('.template-select :selected').parent().attr('label');
-
-        if (group == "{{ trans('texts.default') }}") {
-            var template = defaultTemplateMap[templateId];
-        } else {
-            var template = customTemplateMap[templateId];
+            return true;
         }
 
-        grapesjsEditor.CssComposer.getAll().reset();
-        grapesjsEditor.setComponents(template.html);
-        grapesjsEditor.setStyle(template.css);
+        function onTemplateSelectChange() {
+            var templateId = $('.template-select').val();
+            var group = $('.template-select :selected').parent().attr('label');
 
-        $('.template-select').val(null).blur();
-    }
+            if (group == "{{ trans('texts.default') }}") {
+                var template = defaultTemplateMap[templateId];
+            } else {
+                var template = customTemplateMap[templateId];
+            }
 
-    $(function() {
-        for (var i=0; i<customTemplates.length; i++) {
-            var template = customTemplates[i];
-            customTemplateMap[template.public_id] = template;
+            grapesjsEditor.CssComposer.getAll().reset();
+            grapesjsEditor.setComponents(template.html);
+            grapesjsEditor.setStyle(template.css);
+
+            $('.template-select').val(null).blur();
         }
-        for (var i=0; i<defaultTemplates.length; i++) {
-            var template = defaultTemplates[i];
-            defaultTemplateMap[template.public_id] = template;
-        }
-    })
 
-</script>
+        $(function () {
+            for (var i = 0; i < customTemplates.length; i++) {
+                var template = customTemplates[i];
+                customTemplateMap[template.public_id] = template;
+            }
+            for (var i = 0; i < defaultTemplates.length; i++) {
+                var template = defaultTemplates[i];
+                defaultTemplateMap[template.public_id] = template;
+            }
+        })
 
-@include('proposals.grapesjs', ['entity' => $template])
+    </script>
+
+    @include('proposals.grapesjs', ['entity' => $template])
 
 @stop

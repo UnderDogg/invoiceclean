@@ -5,9 +5,9 @@
 
     <script type="text/javascript" src="{{ asset('js/qrcode.min.js') }}"></script>
     <script type="text/javascript">
-        $(function() {
+        $(function () {
             var qrcode = new QRCode(document.getElementById("qrcode"), {
-            	text: "{{ $source['bitcoin']['uri'] }}",
+                text: "{{ $source['bitcoin']['uri'] }}",
                 width: 330,
                 height: 330,
             });

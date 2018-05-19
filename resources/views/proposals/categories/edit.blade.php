@@ -18,30 +18,30 @@
         {!! Former::text('public_id') !!}
     </span>
 
-	<div class="row">
+    <div class="row">
         <div class="col-lg-10 col-lg-offset-1">
 
             <div class="panel panel-default">
-            <div class="panel-body">
+                <div class="panel-body">
 
-                {!! Former::text('name') !!}
+                    {!! Former::text('name') !!}
 
-            </div>
+                </div>
             </div>
 
         </div>
     </div>
 
 
-	<center class="buttons">
+    <center class="buttons">
         {!! Button::normal(trans('texts.cancel'))->large()->asLinkTo(HTMLUtils::previousUrl('/proposals/categories'))->appendIcon(Icon::create('remove-circle')) !!}
         {!! Button::success(trans('texts.save'))->submit()->large()->appendIcon(Icon::create('floppy-disk')) !!}
-	</center>
+    </center>
 
-	{!! Former::close() !!}
+    {!! Former::close() !!}
 
     <script>
-        $(function() {
+        $(function () {
             $('#name').focus();
         });
     </script>
