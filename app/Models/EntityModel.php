@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Str;
 use Auth;
 use Eloquent;
+use Str;
 use Utils;
 use Validator;
 
@@ -16,23 +16,7 @@ class EntityModel extends Eloquent
     /**
      * @var bool
      */
-    public $timestamps = true;
-
-    /**
-     * @var bool
-     */
-    protected static $hasPublicId = true;
-
-    /**
-     * @var array
-     */
-    protected $hidden = ['id'];
-
-    /**
-     * @var bool
-     */
     public static $notifySubscriptions = true;
-
     /**
      * @var array
      */
@@ -41,6 +25,18 @@ class EntityModel extends Eloquent
         STATUS_ARCHIVED,
         STATUS_DELETED,
     ];
+    /**
+     * @var bool
+     */
+    protected static $hasPublicId = true;
+    /**
+     * @var bool
+     */
+    public $timestamps = true;
+    /**
+     * @var array
+     */
+    protected $hidden = ['id'];
 
     /**
      * @param null $context
@@ -102,7 +98,7 @@ class EntityModel extends Eloquent
      */
     public static function getPrivateId($publicId)
     {
-        if (! $publicId) {
+        if (!$publicId) {
             return null;
         }
 
@@ -116,168 +112,19 @@ class EntityModel extends Eloquent
     }
 
     /**
-     * @return string
-     */
-    public function getActivityKey()
-    {
-        return '[' . $this->getEntityType().':'.$this->public_id.':'.$this->getDisplayName() . ']';
-    }
-
-    public function entityKey()
-    {
-        return $this->public_id . ':' . $this->getEntityType();
-    }
-
-    public function subEntityType()
-    {
-        return $this->getEntityType();
-    }
-
-    public function isEntityType($type)
-    {
-        return $this->getEntityType() === $type;
-    }
-
-    /*
-    public function getEntityType()
-    {
-        return '';
-    }
-
-    public function getNmae()
-    {
-        return '';
-    }
-    */
-
-    /**
-     * @param $query
-     * @param bool $publicId
-     * @param bool $accountId
-     *
-     * @return mixed
-     */
-    public function scopeScope($query, $publicId = false, $accountId = false)
-    {
-        // If 'false' is passed as the publicId return nothing rather than everything
-        if (func_num_args() > 1 && ! $publicId && ! $accountId) {
-            $query->where('id', '=', 0);
-            return $query;
-        }
-
-        if (! $accountId) {
-            $accountId = Auth::user()->account_id;
-        }
-
-        $query->where($this->getTable() .'.account_id', '=', $accountId);
-
-        if ($publicId) {
-            if (is_array($publicId)) {
-                $query->whereIn('public_id', $publicId);
-            } else {
-                $query->wherePublicId($publicId);
-            }
-        }
-
-        if (Auth::check() && ! Auth::user()->hasPermission('view_all') && method_exists($this, 'getEntityType') && $this->getEntityType() != ENTITY_TAX_RATE) {
-            $query->where(Utils::pluralizeEntityType($this->getEntityType()) . '.user_id', '=', Auth::user()->id);
-        }
-
-        return $query;
-    }
-
-    public function scopeWithActiveOrSelected($query, $id = false)
-    {
-        return $query->withTrashed()
-                      ->where(function ($query) use ($id) {
-                            $query->whereNull('deleted_at')
-                                  ->orWhere('id', '=', $id);
-                });
-    }
-
-    /**
-     * @param $query
-     *
-     * @return mixed
-     */
-    public function scopeWithArchived($query)
-    {
-        return $query->withTrashed()->where('is_deleted', '=', false);
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getName()
-    {
-        return $this->public_id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDisplayName()
-    {
-        return $this->getName();
-    }
-
-    /**
-     * @param $entityType
-     *
-     * @return string
-     */
-    public static function getClassName($entityType)
-    {
-        if (! Utils::isNinjaProd()) {
-            if ($module = \Module::find($entityType)) {
-                return "Modules\\{$module->getName()}\\Models\\{$module->getName()}";
-            }
-        }
-
-        if ($entityType == ENTITY_QUOTE || $entityType == ENTITY_RECURRING_INVOICE) {
-            $entityType = ENTITY_INVOICE;
-        }
-
-        return 'App\\Models\\' . ucwords(Utils::toCamelCase($entityType));
-    }
-
-    /**
      * @param $entityType
      *
      * @return string
      */
     public static function getTransformerName($entityType)
     {
-        if (! Utils::isNinjaProd()) {
+        if (!Utils::isNinjaProd()) {
             if ($module = \Module::find($entityType)) {
                 return "Modules\\{$module->getName()}\\Transformers\\{$module->getName()}Transformer";
             }
         }
 
         return 'App\\Ninja\\Transformers\\' . ucwords(Utils::toCamelCase($entityType)) . 'Transformer';
-    }
-
-    public function setNullValues()
-    {
-        foreach ($this->fillable as $field) {
-            if (strstr($field, '_id') && ! $this->$field) {
-                $this->$field = null;
-            }
-        }
-    }
-
-    // converts "App\Models\Client" to "client_id"
-
-    /**
-     * @return string
-     */
-    public function getKeyField()
-    {
-        $class = get_class($this);
-        $parts = explode('\\', $class);
-        $name = $parts[count($parts) - 1];
-
-        return strtolower($name) . '_id';
     }
 
     /**
@@ -289,7 +136,7 @@ class EntityModel extends Eloquent
      */
     public static function validate($data, $entityType = false, $entity = false)
     {
-        if (! $entityType) {
+        if (!$entityType) {
             $className = get_called_class();
             $entityBlank = new $className();
             $entityType = $entityBlank->getEntityType();
@@ -298,7 +145,7 @@ class EntityModel extends Eloquent
         // Use the API request if it exists
         $action = $entity ? 'update' : 'create';
         $requestClass = sprintf('App\\Http\\Requests\\%s%sAPIRequest', ucwords($action), Str::studly($entityType));
-        if (! class_exists($requestClass)) {
+        if (!class_exists($requestClass)) {
             $requestClass = sprintf('App\\Http\\Requests\\%s%sRequest', ucwords($action), Str::studly($entityType));
         }
 
@@ -309,7 +156,7 @@ class EntityModel extends Eloquent
         $request->setEntity($entity);
         $request->replace($data);
 
-        if (! $request->authorize()) {
+        if (!$request->authorize()) {
             return trans('texts.not_allowed');
         }
 
@@ -347,27 +194,6 @@ class EntityModel extends Eloquent
         return array_get($icons, $entityType);
     }
 
-    public function loadFromRequest()
-    {
-        foreach (static::$requestFields as $field) {
-            if ($value = request()->$field) {
-                $this->$field = strpos($field, 'date') ? Utils::fromSqlDate($value) : $value;
-            }
-        }
-    }
-
-    // isDirty return true if the field's new value is the same as the old one
-    public function isChanged()
-    {
-        foreach ($this->fillable as $field) {
-            if ($this->$field != $this->getOriginal($field)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public static function getFormUrl($entityType)
     {
         if (in_array($entityType, [ENTITY_PROPOSAL_CATEGORY, ENTITY_PROPOSAL_SNIPPET, ENTITY_PROPOSAL_TEMPLATE])) {
@@ -376,6 +202,18 @@ class EntityModel extends Eloquent
             return Utils::pluralizeEntityType($entityType);
         }
     }
+
+    /*
+    public function getEntityType()
+    {
+        return '';
+    }
+
+    public function getNmae()
+    {
+        return '';
+    }
+    */
 
     public static function getStates($entityType = false)
     {
@@ -400,11 +238,171 @@ class EntityModel extends Eloquent
         return $class::getStates($entityType);
     }
 
+    /**
+     * @param $entityType
+     *
+     * @return string
+     */
+    public static function getClassName($entityType)
+    {
+        if (!Utils::isNinjaProd()) {
+            if ($module = \Module::find($entityType)) {
+                return "Modules\\{$module->getName()}\\Models\\{$module->getName()}";
+            }
+        }
+
+        if ($entityType == ENTITY_QUOTE || $entityType == ENTITY_RECURRING_INVOICE) {
+            $entityType = ENTITY_INVOICE;
+        }
+
+        return 'App\\Models\\' . ucwords(Utils::toCamelCase($entityType));
+    }
+
     public static function getStatusesFor($entityType = false)
     {
         $class = static::getClassName($entityType);
 
         return $class::getStatuses($entityType);
+    }
+
+    /**
+     * @return string
+     */
+    public function getActivityKey()
+    {
+        return '[' . $this->getEntityType() . ':' . $this->public_id . ':' . $this->getDisplayName() . ']';
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDisplayName()
+    {
+        return $this->getName();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getName()
+    {
+        return $this->public_id;
+    }
+
+    // converts "App\Models\Client" to "client_id"
+
+    public function entityKey()
+    {
+        return $this->public_id . ':' . $this->getEntityType();
+    }
+
+    public function subEntityType()
+    {
+        return $this->getEntityType();
+    }
+
+    public function isEntityType($type)
+    {
+        return $this->getEntityType() === $type;
+    }
+
+    /**
+     * @param $query
+     * @param bool $publicId
+     * @param bool $accountId
+     *
+     * @return mixed
+     */
+    public function scopeScope($query, $publicId = false, $accountId = false)
+    {
+        // If 'false' is passed as the publicId return nothing rather than everything
+        if (func_num_args() > 1 && !$publicId && !$accountId) {
+            $query->where('id', '=', 0);
+            return $query;
+        }
+
+        if (!$accountId) {
+            $accountId = Auth::user()->account_id;
+        }
+
+        $query->where($this->getTable() . '.account_id', '=', $accountId);
+
+        if ($publicId) {
+            if (is_array($publicId)) {
+                $query->whereIn('public_id', $publicId);
+            } else {
+                $query->wherePublicId($publicId);
+            }
+        }
+
+        if (Auth::check() && !Auth::user()->hasPermission('view_all') && method_exists($this,
+                'getEntityType') && $this->getEntityType() != ENTITY_TAX_RATE) {
+            $query->where(Utils::pluralizeEntityType($this->getEntityType()) . '.user_id', '=', Auth::user()->id);
+        }
+
+        return $query;
+    }
+
+    // isDirty return true if the field's new value is the same as the old one
+
+    public function scopeWithActiveOrSelected($query, $id = false)
+    {
+        return $query->withTrashed()
+            ->where(function ($query) use ($id) {
+                $query->whereNull('deleted_at')
+                    ->orWhere('id', '=', $id);
+            });
+    }
+
+    /**
+     * @param $query
+     *
+     * @return mixed
+     */
+    public function scopeWithArchived($query)
+    {
+        return $query->withTrashed()->where('is_deleted', '=', false);
+    }
+
+    public function setNullValues()
+    {
+        foreach ($this->fillable as $field) {
+            if (strstr($field, '_id') && !$this->$field) {
+                $this->$field = null;
+            }
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getKeyField()
+    {
+        $class = get_class($this);
+        $parts = explode('\\', $class);
+        $name = $parts[count($parts) - 1];
+
+        return strtolower($name) . '_id';
+    }
+
+    public function loadFromRequest()
+    {
+        foreach (static::$requestFields as $field) {
+            if ($value = request()->$field) {
+                $this->$field = strpos($field, 'date') ? Utils::fromSqlDate($value) : $value;
+            }
+        }
+    }
+
+    public function isChanged()
+    {
+        foreach ($this->fillable as $field) {
+            if ($this->$field != $this->getOriginal($field)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function statusClass()
@@ -451,9 +449,9 @@ class EntityModel extends Eloquent
     }
 
     /**
-      * @param $method
-      * @param $params
-      */
+     * @param $method
+     * @param $params
+     */
     public function __call($method, $params)
     {
         if (count(config('modules.relations'))) {

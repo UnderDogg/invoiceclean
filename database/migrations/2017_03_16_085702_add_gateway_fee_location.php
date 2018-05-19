@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
 class AddGatewayFeeLocation extends Migration
@@ -112,7 +111,7 @@ class AddGatewayFeeLocation extends Migration
         });
 
 
-        if (! Schema::hasColumn('accounts', 'gateway_fee_enabled')) {
+        if (!Schema::hasColumn('accounts', 'gateway_fee_enabled')) {
             Schema::table('accounts', function ($table) {
                 $table->boolean('gateway_fee_enabled')->default(0);
             });

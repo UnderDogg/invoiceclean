@@ -11,35 +11,6 @@ use Utils;
 class BaseRepository
 {
     /**
-     * @return null
-     */
-    public function getClassName()
-    {
-        return null;
-    }
-
-    /**
-     * @return mixed
-     */
-    private function getInstance()
-    {
-        $className = $this->getClassName();
-
-        return new $className();
-    }
-
-    /**
-     * @param $entity
-     * @param $type
-     *
-     * @return string
-     */
-    private function getEventClass($entity, $type)
-    {
-        return 'App\Events\\' . ucfirst($entity->getEntityType()) . 'Was' . $type;
-    }
-
-    /**
      * @param $entity
      */
     public function archive($entity)
@@ -59,10 +30,21 @@ class BaseRepository
 
     /**
      * @param $entity
+     * @param $type
+     *
+     * @return string
+     */
+    private function getEventClass($entity, $type)
+    {
+        return 'App\Events\\' . ucfirst($entity->getEntityType()) . 'Was' . $type;
+    }
+
+    /**
+     * @param $entity
      */
     public function restore($entity)
     {
-        if (! $entity->trashed()) {
+        if (!$entity->trashed()) {
             return;
         }
 
@@ -111,7 +93,7 @@ class BaseRepository
      */
     public function bulk($ids, $action)
     {
-        if (! $ids) {
+        if (!$ids) {
             return 0;
         }
 
@@ -131,9 +113,27 @@ class BaseRepository
      *
      * @return mixed
      */
-    public function findByPublicIds($ids)
+    public function findByPublicIdsWithTrashed($ids)
     {
-        return $this->getInstance()->scope($ids)->get();
+        return $this->getInstance()->scope($ids)->withTrashed()->get();
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getInstance()
+    {
+        $className = $this->getClassName();
+
+        return new $className();
+    }
+
+    /**
+     * @return null
+     */
+    public function getClassName()
+    {
+        return null;
     }
 
     /**
@@ -141,9 +141,9 @@ class BaseRepository
      *
      * @return mixed
      */
-    public function findByPublicIdsWithTrashed($ids)
+    public function findByPublicIds($ids)
     {
-        return $this->getInstance()->scope($ids)->withTrashed()->get();
+        return $this->getInstance()->scope($ids)->get();
     }
 
     protected function applyFilters($query, $entityType, $table = false)
@@ -162,7 +162,7 @@ class BaseRepository
                     $query->orWhere(function ($query) use ($table) {
                         $query->whereNotNull($table . '.deleted_at');
 
-                        if (! in_array($table, ['users'])) {
+                        if (!in_array($table, ['users'])) {
                             $query->where($table . '.is_deleted', '=', 0);
                         }
                     });
@@ -170,7 +170,7 @@ class BaseRepository
                 if (in_array(STATUS_DELETED, $filters)) {
                     $query->orWhere(function ($query) use ($table) {
                         $query->whereNotNull($table . '.deleted_at')
-                              ->where($table . '.is_deleted', '=', 1);
+                            ->where($table . '.is_deleted', '=', 1);
                     });
                 }
             });

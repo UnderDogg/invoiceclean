@@ -2,9 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Expense;
-use App\Models\Invoice;
-
 class CreateDocumentRequest extends DocumentRequest
 {
     protected $autoload = [
@@ -19,10 +16,10 @@ class CreateDocumentRequest extends DocumentRequest
      */
     public function authorize()
     {
-        if (! $this->user()->hasFeature(FEATURE_DOCUMENTS)) {
+        if (!$this->user()->hasFeature(FEATURE_DOCUMENTS)) {
             return false;
         }
-        
+
         if ($this->invoice && $this->user()->cannot('edit', $this->invoice)) {
             return false;
         }

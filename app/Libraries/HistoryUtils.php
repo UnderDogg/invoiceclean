@@ -54,7 +54,7 @@ class HistoryUtils
                 $entity = $activity->client;
             } elseif ($activity->activity_type_id == ACTIVITY_TYPE_CREATE_TASK || $activity->activity_type_id == ACTIVITY_TYPE_UPDATE_TASK) {
                 $entity = $activity->task;
-                if (! $entity) {
+                if (!$entity) {
                     continue;
                 }
                 $entity->setRelation('client', $activity->client);
@@ -66,13 +66,13 @@ class HistoryUtils
                 }
             } elseif ($activity->activity_type_id == ACTIVITY_TYPE_CREATE_EXPENSE || $activity->activity_type_id == ACTIVITY_TYPE_UPDATE_EXPENSE) {
                 $entity = $activity->expense;
-                if (! $entity) {
+                if (!$entity) {
                     continue;
                 }
                 $entity->setRelation('client', $activity->client);
             } else {
                 $entity = $activity->invoice;
-                if (! $entity) {
+                if (!$entity) {
                     continue;
                 }
                 $entity->setRelation('client', $activity->client);
@@ -80,28 +80,6 @@ class HistoryUtils
 
             static::trackViewed($entity);
         }
-    }
-
-    public static function deleteHistory(EntityModel $entity)
-    {
-        $history = Session::get(RECENTLY_VIEWED) ?: [];
-        $accountHistory = isset($history[$entity->account_id]) ? $history[$entity->account_id] : [];
-        $remove = [];
-
-        for ($i=0; $i<count($accountHistory); $i++) {
-            $item = $accountHistory[$i];
-            if ($entity->equalTo($item)) {
-                $remove[] = $i;
-            } elseif ($entity->getEntityType() == ENTITY_CLIENT && $entity->public_id == $item->client_id) {
-                $remove[] = $i;
-            }
-        }
-
-        for ($i=count($remove) - 1; $i>=0; $i--) {
-            array_splice($history[$entity->account_id], $remove[$i], 1);
-        }
-
-        Session::put(RECENTLY_VIEWED, $history);
     }
 
     public static function trackViewed(EntityModel $entity)
@@ -118,7 +96,7 @@ class HistoryUtils
             //ENTITY_RECURRING_EXPENSE,
         ];
 
-        if (! in_array($entityType, $trackedTypes)) {
+        if (!in_array($entityType, $trackedTypes)) {
             return;
         }
 
@@ -186,6 +164,28 @@ class HistoryUtils
         return $object;
     }
 
+    public static function deleteHistory(EntityModel $entity)
+    {
+        $history = Session::get(RECENTLY_VIEWED) ?: [];
+        $accountHistory = isset($history[$entity->account_id]) ? $history[$entity->account_id] : [];
+        $remove = [];
+
+        for ($i = 0; $i < count($accountHistory); $i++) {
+            $item = $accountHistory[$i];
+            if ($entity->equalTo($item)) {
+                $remove[] = $i;
+            } elseif ($entity->getEntityType() == ENTITY_CLIENT && $entity->public_id == $item->client_id) {
+                $remove[] = $i;
+            }
+        }
+
+        for ($i = count($remove) - 1; $i >= 0; $i--) {
+            array_splice($history[$entity->account_id], $remove[$i], 1);
+        }
+
+        Session::put(RECENTLY_VIEWED, $history);
+    }
+
     public static function renderHtml($accountId)
     {
         $lastClientId = false;
@@ -219,7 +219,8 @@ class HistoryUtils
                 }
 
                 $padding = $str ? 16 : 0;
-                $str .= sprintf('<li style="margin-top: %spx">%s<a href="%s"><div>%s %s</div></a></li>', $padding, $button, $link, $icon, $name);
+                $str .= sprintf('<li style="margin-top: %spx">%s<a href="%s"><div>%s %s</div></a></li>', $padding,
+                    $button, $link, $icon, $name);
                 $lastClientId = $item->client_id;
             }
 
@@ -228,7 +229,8 @@ class HistoryUtils
             }
 
             $icon = '<i class="fa fa-' . EntityModel::getIcon($item->entityType . 's') . '" style="width:24px"></i>';
-            $str .= sprintf('<li style="text-align:right; padding-right:18px;"><a href="%s">%s %s</a></li>', $item->url, e($item->name), $icon);
+            $str .= sprintf('<li style="text-align:right; padding-right:18px;"><a href="%s">%s %s</a></li>', $item->url,
+                e($item->name), $icon);
         }
 
         return $str;

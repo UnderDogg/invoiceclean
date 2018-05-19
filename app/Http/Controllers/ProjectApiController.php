@@ -17,7 +17,6 @@ use View;
  * Class ProjectApiController
  * @package App\Http\Controllers
  */
-
 class ProjectApiController extends BaseAPIController
 {
     /**
@@ -210,14 +209,14 @@ class ProjectApiController extends BaseAPIController
      *
      */
 
-     public function destroy(UpdateProjectRequest $request)
-     {
-         $project = $request->entity();
+    public function destroy(UpdateProjectRequest $request)
+    {
+        $project = $request->entity();
 
-         $this->projectRepo->delete($project);
+        $this->projectRepo->delete($project);
 
-         return $this->itemResponse($project);
-     }
+        return $this->itemResponse($project);
+    }
 
 
 }

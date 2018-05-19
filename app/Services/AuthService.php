@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Events\UserLoggedIn;
-use App\Ninja\Repositories\AccountRepository;
 use App\Models\LookupUser;
+use App\Ninja\Repositories\AccountRepository;
 use Auth;
 use Input;
 use Session;
@@ -17,11 +17,6 @@ use Utils;
 class AuthService
 {
     /**
-     * @var AccountRepository
-     */
-    private $accountRepo;
-
-    /**
      * @var array
      */
     public static $providers = [
@@ -30,6 +25,10 @@ class AuthService
         3 => SOCIAL_GITHUB,
         4 => SOCIAL_LINKEDIN,
     ];
+    /**
+     * @var AccountRepository
+     */
+    private $accountRepo;
 
     /**
      * AuthService constructor.
@@ -46,6 +45,16 @@ class AuthService
     }
 
     /**
+     * @param $providerId
+     *
+     * @return mixed|string
+     */
+    public static function getProviderName($providerId)
+    {
+        return $providerId ? self::$providers[$providerId] : '';
+    }
+
+    /**
      * @param $provider
      * @param $hasCode
      *
@@ -53,7 +62,7 @@ class AuthService
      */
     public function execute($provider, $hasCode)
     {
-        if (! $hasCode) {
+        if (!$hasCode) {
             return $this->getAuthorization($provider);
         }
 
@@ -67,10 +76,11 @@ class AuthService
         if (Auth::check()) {
             $user = Auth::user();
             $isRegistered = $user->registered;
-            $result = $this->accountRepo->updateUserFromOauth($user, $name[0], $name[1], $email, $providerId, $oauthUserId);
+            $result = $this->accountRepo->updateUserFromOauth($user, $name[0], $name[1], $email, $providerId,
+                $oauthUserId);
 
             if ($result === true) {
-                if (! $isRegistered) {
+                if (!$isRegistered) {
                     Session::flash('warning', trans('texts.success_message'));
                     Session::flash('onReady', 'handleSignedUp();');
                 } else {
@@ -121,15 +131,5 @@ class AuthService
     public static function getProviderId($provider)
     {
         return array_search(strtolower($provider), array_map('strtolower', self::$providers));
-    }
-
-    /**
-     * @param $providerId
-     *
-     * @return mixed|string
-     */
-    public static function getProviderName($providerId)
-    {
-        return $providerId ? self::$providers[$providerId] : '';
     }
 }

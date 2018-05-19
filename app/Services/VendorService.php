@@ -29,7 +29,7 @@ class VendorService extends BaseService
      *
      * @param VendorRepository $vendorRepo
      * @param DatatableService $datatableService
-     * @param NinjaRepository  $ninjaRepo
+     * @param NinjaRepository $ninjaRepo
      */
     public function __construct(
         VendorRepository $vendorRepo,
@@ -42,15 +42,7 @@ class VendorService extends BaseService
     }
 
     /**
-     * @return VendorRepository
-     */
-    protected function getRepo()
-    {
-        return $this->vendorRepo;
-    }
-
-    /**
-     * @param array       $data
+     * @param array $data
      * @param Vendor|null $vendor
      *
      * @return mixed|null
@@ -70,10 +62,18 @@ class VendorService extends BaseService
         $datatable = new VendorDatatable();
         $query = $this->vendorRepo->find($search);
 
-        if (! Utils::hasPermission('view_all')) {
+        if (!Utils::hasPermission('view_all')) {
             $query->where('vendors.user_id', '=', Auth::user()->id);
         }
 
         return $this->datatableService->createDatatable($datatable, $query);
+    }
+
+    /**
+     * @return VendorRepository
+     */
+    protected function getRepo()
+    {
+        return $this->vendorRepo;
     }
 }

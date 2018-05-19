@@ -57,7 +57,7 @@ abstract class Request extends FormRequest
     public function response(array $errors)
     {
         /* If the user is not validating from a mobile app - pass through parent::response */
-        if (! request()->api_secret) {
+        if (!request()->api_secret) {
             return parent::response($errors);
         }
 

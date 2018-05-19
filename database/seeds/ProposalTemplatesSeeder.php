@@ -29,7 +29,7 @@ class ProposalTemplatesSeeder extends Seeder
             if (file_exists($htmlFileName) && file_exists($cssFileName)) {
                 $template = ProposalTemplate::whereName($design)->whereNull('account_id')->first();
 
-                if (! $template) {
+                if (!$template) {
                     $template = new ProposalTemplate();
                     $template->public_id = $i + 1;
                     $template->name = $design;

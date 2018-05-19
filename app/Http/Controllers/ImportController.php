@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\ImportService;
 use App\Jobs\ImportData;
+use App\Services\ImportService;
+use Auth;
 use Exception;
+use Illuminate\Http\Request;
 use Input;
 use Redirect;
 use Session;
 use Utils;
 use View;
-use Auth;
 
 class ImportController extends BaseController
 {
@@ -22,7 +22,7 @@ class ImportController extends BaseController
 
     public function doImport(Request $request)
     {
-        if (! Auth::user()->confirmed) {
+        if (!Auth::user()->confirmed) {
             return redirect('/settings/' . ACCOUNT_IMPORT_EXPORT)->withError(trans('texts.confirm_account_to_import'));
         }
 
@@ -46,7 +46,7 @@ class ImportController extends BaseController
                         return redirect()->to('/settings/' . ACCOUNT_IMPORT_EXPORT)->withError(trans('texts.invalid_file'));
                     }
                 } else {
-                    if (! in_array($extension, ['csv', 'xls', 'xlsx', 'json'])) {
+                    if (!in_array($extension, ['csv', 'xls', 'xlsx', 'json'])) {
                         return redirect()->to('/settings/' . ACCOUNT_IMPORT_EXPORT)->withError(trans('texts.invalid_file'));
                     }
                 }
@@ -57,7 +57,7 @@ class ImportController extends BaseController
             }
         }
 
-        if (! count($files)) {
+        if (!count($files)) {
             Session::flash('error', trans('texts.select_file'));
             return Redirect::to('/settings/' . ACCOUNT_IMPORT_EXPORT);
         }
@@ -140,7 +140,8 @@ class ImportController extends BaseController
         try {
             $path = env('FILE_IMPORT_PATH') ?: storage_path() . '/import';
             foreach ([ENTITY_CLIENT, ENTITY_INVOICE, ENTITY_PAYMENT, ENTITY_QUOTE, ENTITY_PRODUCT] as $entityType) {
-                $fileName = sprintf('%s/%s_%s_%s.csv', $path, Auth::user()->account_id, request()->timestamp, $entityType);
+                $fileName = sprintf('%s/%s_%s_%s.csv', $path, Auth::user()->account_id, request()->timestamp,
+                    $entityType);
                 \File::delete($fileName);
             }
         } catch (Exception $exception) {

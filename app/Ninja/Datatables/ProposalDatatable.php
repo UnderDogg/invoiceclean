@@ -17,7 +17,7 @@ class ProposalDatatable extends EntityDatatable
             [
                 'quote',
                 function ($model) {
-                    if (! Auth::user()->can('viewByOwner', [ENTITY_QUOTE, $model->invoice_user_id])) {
+                    if (!Auth::user()->can('viewByOwner', [ENTITY_QUOTE, $model->invoice_user_id])) {
                         return $model->invoice_number;
                     }
 
@@ -27,7 +27,7 @@ class ProposalDatatable extends EntityDatatable
             [
                 'client',
                 function ($model) {
-                    if (! Auth::user()->can('viewByOwner', [ENTITY_CLIENT, $model->client_user_id])) {
+                    if (!Auth::user()->can('viewByOwner', [ENTITY_CLIENT, $model->client_user_id])) {
                         return $model->client;
                     }
 
@@ -37,21 +37,23 @@ class ProposalDatatable extends EntityDatatable
             [
                 'template',
                 function ($model) {
-                    if (! Auth::user()->can('viewByOwner', [ENTITY_PROPOSAL_TEMPLATE, $model->template_user_id])) {
+                    if (!Auth::user()->can('viewByOwner', [ENTITY_PROPOSAL_TEMPLATE, $model->template_user_id])) {
                         return $model->template ?: ' ';
                     }
 
-                    return link_to("proposals/templates/{$model->template_public_id}/edit", $model->template ?: ' ')->toHtml();
+                    return link_to("proposals/templates/{$model->template_public_id}/edit",
+                        $model->template ?: ' ')->toHtml();
                 },
             ],
             [
                 'created_at',
                 function ($model) {
-                    if (! Auth::user()->can('viewByOwner', [ENTITY_PROPOSAL, $model->user_id])) {
+                    if (!Auth::user()->can('viewByOwner', [ENTITY_PROPOSAL, $model->user_id])) {
                         return Utils::timestampToDateString(strtotime($model->created_at));
                     }
 
-                    return link_to("proposals/{$model->public_id}/edit", Utils::timestampToDateString(strtotime($model->created_at)))->toHtml();
+                    return link_to("proposals/{$model->public_id}/edit",
+                        Utils::timestampToDateString(strtotime($model->created_at)))->toHtml();
                 },
             ],
             [

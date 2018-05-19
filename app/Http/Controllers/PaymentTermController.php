@@ -59,10 +59,10 @@ class PaymentTermController extends BaseController
     public function edit($publicId)
     {
         $data = [
-          'paymentTerm' => PaymentTerm::scope($publicId)->firstOrFail(),
-          'method' => 'PUT',
-          'url' => 'payment_terms/'.$publicId,
-          'title' => trans('texts.edit_payment_term'),
+            'paymentTerm' => PaymentTerm::scope($publicId)->firstOrFail(),
+            'method' => 'PUT',
+            'url' => 'payment_terms/' . $publicId,
+            'title' => trans('texts.edit_payment_term'),
         ];
 
         return View::make('accounts.payment_term', $data);
@@ -74,10 +74,10 @@ class PaymentTermController extends BaseController
     public function create()
     {
         $data = [
-          'paymentTerm' => null,
-          'method' => 'POST',
-          'url' => 'payment_terms',
-          'title' => trans('texts.create_payment_term'),
+            'paymentTerm' => null,
+            'method' => 'POST',
+            'url' => 'payment_terms',
+            'title' => trans('texts.create_payment_term'),
         ];
 
         return View::make('accounts.payment_term', $data);
@@ -89,16 +89,6 @@ class PaymentTermController extends BaseController
     public function store(CreatePaymentTermRequest $request)
     {
         return $this->save();
-    }
-
-    /**
-     * @param $publicId
-     *
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(UpdatePaymentTermRequest $request, $publicId)
-    {
-        return $this->save($publicId);
     }
 
     /**
@@ -122,6 +112,16 @@ class PaymentTermController extends BaseController
         Session::flash('message', $message);
 
         return Redirect::to('settings/' . ACCOUNT_PAYMENT_TERMS);
+    }
+
+    /**
+     * @param $publicId
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(UpdatePaymentTermRequest $request, $publicId)
+    {
+        return $this->save($publicId);
     }
 
     /**

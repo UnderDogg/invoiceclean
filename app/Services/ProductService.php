@@ -22,21 +22,13 @@ class ProductService extends BaseService
     /**
      * ProductService constructor.
      *
-     * @param DatatableService  $datatableService
+     * @param DatatableService $datatableService
      * @param ProductRepository $productRepo
      */
     public function __construct(DatatableService $datatableService, ProductRepository $productRepo)
     {
         $this->datatableService = $datatableService;
         $this->productRepo = $productRepo;
-    }
-
-    /**
-     * @return ProductRepository
-     */
-    protected function getRepo()
-    {
-        return $this->productRepo;
     }
 
     /**
@@ -50,10 +42,18 @@ class ProductService extends BaseService
         $datatable = new ProductDatatable(true);
         $query = $this->productRepo->find($accountId, $search);
 
-        if (! Utils::hasPermission('view_all')) {
+        if (!Utils::hasPermission('view_all')) {
             $query->where('products.user_id', '=', Auth::user()->id);
         }
 
         return $this->datatableService->createDatatable($datatable, $query);
+    }
+
+    /**
+     * @return ProductRepository
+     */
+    protected function getRepo()
+    {
+        return $this->productRepo;
     }
 }

@@ -27,6 +27,28 @@ class Task extends EntityModel
         'custom_value1',
         'custom_value2',
     ];
+    /**
+     * @var string
+     */
+    protected $presenter = 'App\Ninja\Presenters\TaskPresenter';
+
+    public static function getStatuses($entityType = false)
+    {
+        $statuses = [];
+
+        $taskStatues = TaskStatus::scope()->orderBy('sort_order')->get();
+
+        foreach ($taskStatues as $status) {
+            $statuses[$status->public_id] = $status->name;
+        }
+
+        $statuses[TASK_STATUS_LOGGED] = trans('texts.logged');
+        $statuses[TASK_STATUS_RUNNING] = trans('texts.running');
+        $statuses[TASK_STATUS_INVOICED] = trans('texts.invoiced');
+        $statuses[TASK_STATUS_PAID] = trans('texts.paid');
+
+        return $statuses;
+    }
 
     /**
      * @return mixed
@@ -35,11 +57,6 @@ class Task extends EntityModel
     {
         return ENTITY_TASK;
     }
-
-    /**
-     * @var string
-     */
-    protected $presenter = 'App\Ninja\Presenters\TaskPresenter';
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -90,6 +107,14 @@ class Task extends EntityModel
     }
 
     /**
+     * @return string
+     */
+    public function getStartTime()
+    {
+        return self::calcStartTime($this);
+    }
+
+    /**
      * @param $task
      *
      * @return string
@@ -105,14 +130,6 @@ class Task extends EntityModel
         }
     }
 
-    /**
-     * @return string
-     */
-    public function getStartTime()
-    {
-        return self::calcStartTime($this);
-    }
-
     public function getLastStartTime()
     {
         $parts = json_decode($this->time_log) ?: [];
@@ -124,45 +141,6 @@ class Task extends EntityModel
         } else {
             return '';
         }
-    }
-
-    /**
-     * @param $task
-     *
-     * @return int
-     */
-    public static function calcDuration($task, $startTimeCutoff = 0, $endTimeCutoff = 0)
-    {
-        $duration = 0;
-        $parts = json_decode($task->time_log) ?: [];
-
-        foreach ($parts as $part) {
-            $startTime = $part[0];
-            if (count($part) == 1 || ! $part[1]) {
-                $endTime = time();
-            } else {
-                $endTime = $part[1];
-            }
-
-            if ($startTimeCutoff) {
-                $startTime = max($startTime, $startTimeCutoff);
-            }
-            if ($endTimeCutoff) {
-                $endTime = min($endTime, $endTimeCutoff);
-            }
-
-            $duration += max($endTime - $startTime, 0);
-        }
-
-        return $duration;
-    }
-
-    /**
-     * @return int
-     */
-    public function getDuration($startTimeCutoff = 0, $endTimeCutoff = 0)
-    {
-        return self::calcDuration($this, $startTimeCutoff, $endTimeCutoff);
     }
 
     /**
@@ -191,7 +169,7 @@ class Task extends EntityModel
         $parts = json_decode($this->time_log) ?: [];
         $part = $parts[count($parts) - 1];
 
-        if (count($part) == 1 || ! $part[1]) {
+        if (count($part) == 1 || !$part[1]) {
             return time() - $part[0];
         } else {
             return 0;
@@ -214,6 +192,45 @@ class Task extends EntityModel
     public function getHours()
     {
         return round($this->getDuration() / (60 * 60), 2);
+    }
+
+    /**
+     * @return int
+     */
+    public function getDuration($startTimeCutoff = 0, $endTimeCutoff = 0)
+    {
+        return self::calcDuration($this, $startTimeCutoff, $endTimeCutoff);
+    }
+
+    /**
+     * @param $task
+     *
+     * @return int
+     */
+    public static function calcDuration($task, $startTimeCutoff = 0, $endTimeCutoff = 0)
+    {
+        $duration = 0;
+        $parts = json_decode($task->time_log) ?: [];
+
+        foreach ($parts as $part) {
+            $startTime = $part[0];
+            if (count($part) == 1 || !$part[1]) {
+                $endTime = time();
+            } else {
+                $endTime = $part[1];
+            }
+
+            if ($startTimeCutoff) {
+                $startTime = max($startTime, $startTimeCutoff);
+            }
+            if ($endTimeCutoff) {
+                $endTime = min($endTime, $endTimeCutoff);
+            }
+
+            $duration += max($endTime - $startTime, 0);
+        }
+
+        return $duration;
     }
 
     /**
@@ -251,22 +268,47 @@ class Task extends EntityModel
         return $query;
     }
 
-    public static function getStatuses($entityType = false)
+    public function statusClass()
     {
-        $statuses = [];
-
-        $taskStatues = TaskStatus::scope()->orderBy('sort_order')->get();
-
-        foreach ($taskStatues as $status) {
-            $statuses[$status->public_id] = $status->name;
+        if ($this->invoice) {
+            $balance = $this->invoice->balance;
+            $invoiceNumber = $this->invoice->invoice_number;
+        } else {
+            $balance = 0;
+            $invoiceNumber = false;
         }
 
-        $statuses[TASK_STATUS_LOGGED] = trans('texts.logged');
-        $statuses[TASK_STATUS_RUNNING] = trans('texts.running');
-        $statuses[TASK_STATUS_INVOICED] = trans('texts.invoiced');
-        $statuses[TASK_STATUS_PAID] = trans('texts.paid');
+        return static::calcStatusClass($this->is_running, $balance, $invoiceNumber);
+    }
 
-        return $statuses;
+    public static function calcStatusClass($isRunning, $balance, $invoiceNumber)
+    {
+        if ($invoiceNumber) {
+            if (floatval($balance)) {
+                return 'default';
+            } else {
+                return 'success';
+            }
+        } elseif ($isRunning) {
+            return 'primary';
+        } else {
+            return 'info';
+        }
+    }
+
+    public function statusLabel()
+    {
+        if ($this->invoice) {
+            $balance = $this->invoice->balance;
+            $invoiceNumber = $this->invoice->invoice_number;
+        } else {
+            $balance = 0;
+            $invoiceNumber = false;
+        }
+
+        $taskStatus = $this->task_status ? $this->task_status->name : false;
+
+        return static::calcStatusLabel($this->is_running, $balance, $invoiceNumber, $taskStatus);
     }
 
     public static function calcStatusLabel($isRunning, $balance, $invoiceNumber, $taskStatus)
@@ -288,49 +330,6 @@ class Task extends EntityModel
         }
 
         return $label;
-    }
-
-    public static function calcStatusClass($isRunning, $balance, $invoiceNumber)
-    {
-        if ($invoiceNumber) {
-            if (floatval($balance)) {
-                return 'default';
-            } else {
-                return 'success';
-            }
-        } elseif ($isRunning) {
-            return 'primary';
-        } else {
-            return 'info';
-        }
-    }
-
-    public function statusClass()
-    {
-        if ($this->invoice) {
-            $balance = $this->invoice->balance;
-            $invoiceNumber = $this->invoice->invoice_number;
-        } else {
-            $balance = 0;
-            $invoiceNumber = false;
-        }
-
-        return static::calcStatusClass($this->is_running, $balance, $invoiceNumber);
-    }
-
-    public function statusLabel()
-    {
-        if ($this->invoice) {
-            $balance = $this->invoice->balance;
-            $invoiceNumber = $this->invoice->invoice_number;
-        } else {
-            $balance = 0;
-            $invoiceNumber = false;
-        }
-
-        $taskStatus = $this->task_status ? $this->task_status->name : false;
-
-        return static::calcStatusLabel($this->is_running, $balance, $invoiceNumber, $taskStatus);
     }
 }
 

@@ -94,6 +94,14 @@ class RecurringExpense extends EntityModel
     /**
      * @return mixed
      */
+    public function getDisplayName()
+    {
+        return $this->getName();
+    }
+
+    /**
+     * @return mixed
+     */
     public function getName()
     {
         if ($this->public_notes) {
@@ -101,14 +109,6 @@ class RecurringExpense extends EntityModel
         } else {
             return '#' . $this->public_id;
         }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDisplayName()
-    {
-        return $this->getName();
     }
 
     /**

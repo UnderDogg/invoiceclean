@@ -19,15 +19,15 @@ class EnableResumingTasks extends Migration
         });
 
         $tasks = DB::table('tasks')
-                    ->where('duration', '=', -1)
-                    ->select('id', 'duration', 'start_time')
-                    ->get();
+            ->where('duration', '=', -1)
+            ->select('id', 'duration', 'start_time')
+            ->get();
 
         foreach ($tasks as $task) {
             $data = [
                 'is_running' => true,
                 'duration' => 0,
-                
+
             ];
 
             DB::table('tasks')

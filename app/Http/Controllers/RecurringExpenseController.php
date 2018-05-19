@@ -13,10 +13,10 @@ use App\Ninja\Datatables\RecurringExpenseDatatable;
 use App\Ninja\Repositories\RecurringExpenseRepository;
 use App\Services\RecurringExpenseService;
 use Auth;
+use Cache;
 use Input;
 use Session;
 use View;
-use Cache;
 
 class RecurringExpenseController extends BaseController
 {
@@ -24,8 +24,10 @@ class RecurringExpenseController extends BaseController
     protected $recurringExpenseService;
     protected $entityType = ENTITY_RECURRING_EXPENSE;
 
-    public function __construct(RecurringExpenseRepository $recurringExpenseRepo, RecurringExpenseService $recurringExpenseService)
-    {
+    public function __construct(
+        RecurringExpenseRepository $recurringExpenseRepo,
+        RecurringExpenseService $recurringExpenseService
+    ) {
         $this->recurringExpenseRepo = $recurringExpenseRepo;
         $this->recurringExpenseService = $recurringExpenseService;
     }
@@ -78,12 +80,23 @@ class RecurringExpenseController extends BaseController
         return View::make('expenses.edit', $data);
     }
 
+    private static function getViewModel()
+    {
+        return [
+            'data' => Input::old('data'),
+            'account' => Auth::user()->account,
+            'categories' => ExpenseCategory::whereAccountId(Auth::user()->account_id)->withArchived()->orderBy('name')->get(),
+            'taxRates' => TaxRate::scope()->whereIsInclusive(false)->orderBy('name')->get(),
+            'isRecurring' => true,
+        ];
+    }
+
     public function edit(RecurringExpenseRequest $request)
     {
         $expense = $request->entity();
 
         $actions = [];
-        if (! $expense->trashed()) {
+        if (!$expense->trashed()) {
             $actions[] = ['url' => 'javascript:submitAction("archive")', 'label' => trans('texts.archive_expense')];
             $actions[] = ['url' => 'javascript:onDeleteClick()', 'label' => trans('texts.delete_expense')];
         } else {
@@ -95,7 +108,7 @@ class RecurringExpenseController extends BaseController
             'expense' => $expense,
             'entity' => $expense,
             'method' => 'PUT',
-            'url' => 'recurring_expenses/'.$expense->public_id,
+            'url' => 'recurring_expenses/' . $expense->public_id,
             'title' => 'Edit Expense',
             'actions' => $actions,
             'vendors' => Vendor::scope()->with('vendor_contacts')->orderBy('name')->get(),
@@ -108,17 +121,6 @@ class RecurringExpenseController extends BaseController
         $data = array_merge($data, self::getViewModel());
 
         return View::make('expenses.edit', $data);
-    }
-
-    private static function getViewModel()
-    {
-        return [
-            'data' => Input::old('data'),
-            'account' => Auth::user()->account,
-            'categories' => ExpenseCategory::whereAccountId(Auth::user()->account_id)->withArchived()->orderBy('name')->get(),
-            'taxRates' => TaxRate::scope()->whereIsInclusive(false)->orderBy('name')->get(),
-            'isRecurring' => true,
-        ];
     }
 
     public function store(CreateRecurringExpenseRequest $request)

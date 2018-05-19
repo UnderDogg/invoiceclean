@@ -49,17 +49,19 @@ class ProductReport extends AbstractReport
         $subgroup = $this->options['subgroup'];
 
         $clients = Client::scope()
-                        ->orderBy('name')
+            ->orderBy('name')
+            ->withArchived()
+            ->with('contacts', 'user')
+            ->with([
+                'invoices' => function ($query) use ($statusIds) {
+                    $query->invoices()
                         ->withArchived()
-                        ->with('contacts', 'user')
-                        ->with(['invoices' => function ($query) use ($statusIds) {
-                            $query->invoices()
-                                  ->withArchived()
-                                  ->statusIds($statusIds)
-                                  ->where('invoice_date', '>=', $this->startDate)
-                                  ->where('invoice_date', '<=', $this->endDate)
-                                  ->with(['invoice_items']);
-                        }]);
+                        ->statusIds($statusIds)
+                        ->where('invoice_date', '>=', $this->startDate)
+                        ->where('invoice_date', '<=', $this->endDate)
+                        ->with(['invoice_items']);
+                }
+            ]);
 
         foreach ($clients->get() as $client) {
             foreach ($client->invoices as $invoice) {

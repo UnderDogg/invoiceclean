@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CreditRequest;
 use App\Http\Requests\CreateCreditRequest;
+use App\Http\Requests\CreditRequest;
 use App\Http\Requests\UpdateCreditRequest;
-use App\Models\Invoice;
 use App\Models\Credit;
 use App\Ninja\Repositories\CreditRepository;
 use Input;
@@ -44,9 +43,9 @@ class CreditApiController extends BaseAPIController
     public function index()
     {
         $credits = Credit::scope()
-                        ->withTrashed()
-                        ->with(['client'])
-                        ->orderBy('created_at', 'desc');
+            ->withTrashed()
+            ->with(['client'])
+            ->orderBy('created_at', 'desc');
 
         return $this->listResponse($credits);
     }

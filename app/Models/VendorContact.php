@@ -13,26 +13,6 @@ class VendorContact extends EntityModel
 {
     use SoftDeletes;
     /**
-     * @var array
-     */
-    protected $dates = ['deleted_at'];
-    /**
-     * @var string
-     */
-    protected $table = 'vendor_contacts';
-
-    /**
-     * @var array
-     */
-    protected $fillable = [
-        'first_name',
-        'last_name',
-        'email',
-        'phone',
-        'send_invoice',
-    ];
-
-    /**
      * @var string
      */
     public static $fieldFirstName = 'first_name';
@@ -48,6 +28,24 @@ class VendorContact extends EntityModel
      * @var string
      */
     public static $fieldPhone = 'phone';
+    /**
+     * @var array
+     */
+    protected $dates = ['deleted_at'];
+    /**
+     * @var string
+     */
+    protected $table = 'vendor_contacts';
+    /**
+     * @var array
+     */
+    protected $fillable = [
+        'first_name',
+        'last_name',
+        'email',
+        'phone',
+        'send_invoice',
+    ];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -107,7 +105,7 @@ class VendorContact extends EntityModel
     public function getFullName()
     {
         if ($this->first_name || $this->last_name) {
-            return $this->first_name.' '.$this->last_name;
+            return $this->first_name . ' ' . $this->last_name;
         } else {
             return '';
         }

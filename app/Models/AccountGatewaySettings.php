@@ -10,10 +10,13 @@ use Utils;
 class AccountGatewaySettings extends EntityModel
 {
     /**
+     * @var bool
+     */
+    protected static $hasPublicId = false;
+    /**
      * @var array
      */
     protected $dates = ['updated_at'];
-
     /**
      * @var array
      */
@@ -25,11 +28,6 @@ class AccountGatewaySettings extends EntityModel
         'fee_tax_name2',
         'fee_tax_rate2',
     ];
-
-    /**
-     * @var bool
-     */
-    protected static $hasPublicId = false;
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

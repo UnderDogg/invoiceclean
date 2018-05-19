@@ -80,44 +80,6 @@ class SubscriptionController extends BaseController
     }
 
     /**
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store()
-    {
-        return $this->save();
-    }
-
-    /**
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function create()
-    {
-        $data = [
-          'subscription' => null,
-          'method' => 'POST',
-          'url' => 'subscriptions',
-          'title' => trans('texts.add_subscription'),
-        ];
-
-        return View::make('accounts.subscription', $data);
-    }
-
-    /**
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function bulk()
-    {
-        $action = Input::get('bulk_action');
-        $ids = Input::get('bulk_public_id');
-
-        $count = $this->subscriptionService->bulk($ids, $action);
-
-        Session::flash('message', trans('texts.archived_subscription'));
-
-        return Redirect::to('settings/' . ACCOUNT_API_TOKENS);
-    }
-
-    /**
      * @param bool $subscriptionPublicId
      *
      * @return $this|\Illuminate\Http\RedirectResponse
@@ -164,5 +126,43 @@ class SubscriptionController extends BaseController
             return redirect('/settings/api_tokens');
         }
         */
+    }
+
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function store()
+    {
+        return $this->save();
+    }
+
+    /**
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function create()
+    {
+        $data = [
+            'subscription' => null,
+            'method' => 'POST',
+            'url' => 'subscriptions',
+            'title' => trans('texts.add_subscription'),
+        ];
+
+        return View::make('accounts.subscription', $data);
+    }
+
+    /**
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function bulk()
+    {
+        $action = Input::get('bulk_action');
+        $ids = Input::get('bulk_public_id');
+
+        $count = $this->subscriptionService->bulk($ids, $action);
+
+        Session::flash('message', trans('texts.archived_subscription'));
+
+        return Redirect::to('settings/' . ACCOUNT_API_TOKENS);
     }
 }

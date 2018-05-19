@@ -15,7 +15,7 @@ class SimplifyTasks extends Migration
 
         foreach ($tasks as $task) {
             $startTime = strtotime($task->start_time);
-            if (! $task->time_log || ! count(json_decode($task->time_log))) {
+            if (!$task->time_log || !count(json_decode($task->time_log))) {
                 $task->time_log = json_encode([[$startTime, $startTime + $task->duration]]);
                 $task->save();
             } elseif ($task->getDuration() != intval($task->duration)) {

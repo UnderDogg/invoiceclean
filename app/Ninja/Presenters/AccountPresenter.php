@@ -2,10 +2,9 @@
 
 namespace App\Ninja\Presenters;
 
-use Carbon;
-use Domain;
-use App\Models\TaxRate;
 use App\Models\Account;
+use App\Models\TaxRate;
+use Domain;
 use Laracasts\Presenter\Presenter;
 use stdClass;
 use Utils;
@@ -122,6 +121,28 @@ class AccountPresenter extends Presenter
         return $date ? Utils::fromSqlDate($date) : ' ';
     }
 
+    public function rBits()
+    {
+        $account = $this->entity;
+        $user = $account->users()->first();
+        $data = [];
+
+        $data[] = $this->createRBit('business_name', 'user', ['business_name' => $account->name]);
+        $data[] = $this->createRBit('industry_code', 'user', ['industry_detail' => $account->present()->industry]);
+        $data[] = $this->createRBit('comment', 'partner_database', ['comment_text' => 'Logo image not present']);
+        $data[] = $this->createRBit('business_description', 'user',
+            ['business_description' => $account->present()->size]);
+
+        $data[] = $this->createRBit('person', 'user', ['name' => $user->getFullName()]);
+        $data[] = $this->createRBit('email', 'user', ['email' => $user->email]);
+        $data[] = $this->createRBit('phone', 'user', ['phone' => $user->phone]);
+        $data[] = $this->createRBit('website_uri', 'user', ['uri' => $account->website]);
+        $data[] = $this->createRBit('external_account', 'partner_database',
+            ['is_partner_account' => 'yes', 'account_type' => 'Invoice Ninja', 'create_time' => time()]);
+
+        return $data;
+    }
+
     private function createRBit($type, $source, $properties)
     {
         $data = new stdClass();
@@ -133,26 +154,6 @@ class AccountPresenter extends Presenter
         foreach ($properties as $key => $val) {
             $data->properties->$key = $val;
         }
-
-        return $data;
-    }
-
-    public function rBits()
-    {
-        $account = $this->entity;
-        $user = $account->users()->first();
-        $data = [];
-
-        $data[] = $this->createRBit('business_name', 'user', ['business_name' => $account->name]);
-        $data[] = $this->createRBit('industry_code', 'user', ['industry_detail' => $account->present()->industry]);
-        $data[] = $this->createRBit('comment', 'partner_database', ['comment_text' => 'Logo image not present']);
-        $data[] = $this->createRBit('business_description', 'user', ['business_description' => $account->present()->size]);
-
-        $data[] = $this->createRBit('person', 'user', ['name' => $user->getFullName()]);
-        $data[] = $this->createRBit('email', 'user', ['email' => $user->email]);
-        $data[] = $this->createRBit('phone', 'user', ['phone' => $user->phone]);
-        $data[] = $this->createRBit('website_uri', 'user', ['uri' => $account->website]);
-        $data[] = $this->createRBit('external_account', 'partner_database', ['is_partner_account' => 'yes', 'account_type' => 'Invoice Ninja', 'create_time' => time()]);
 
         return $data;
     }
@@ -218,14 +219,19 @@ class AccountPresenter extends Presenter
         return $data;
     }
 
+    public function customLabel($field)
+    {
+        return Utils::getCustomLabel($this->entity->customLabel($field));
+    }
+
     public function customDesigns()
     {
         $account = $this->entity;
         $data = [];
 
-        for ($i=1; $i<=3; $i++) {
+        for ($i = 1; $i <= 3; $i++) {
             $label = trans('texts.custom_design' . $i);
-            if (! $account->{'custom_design' . $i}) {
+            if (!$account->{'custom_design' . $i}) {
                 $label .= ' - ' . trans('texts.empty');
             }
 
@@ -253,7 +259,7 @@ class AccountPresenter extends Presenter
         $url .= '/client/login';
 
         if (Utils::isNinja()) {
-            if (! $account->subdomain) {
+            if (!$account->subdomain) {
                 $url .= '?account_key=' . $account->account_key;
             }
         } else {
@@ -263,10 +269,5 @@ class AccountPresenter extends Presenter
         }
 
         return $url;
-    }
-
-    public function customLabel($field)
-    {
-        return Utils::getCustomLabel($this->entity->customLabel($field));
     }
 }

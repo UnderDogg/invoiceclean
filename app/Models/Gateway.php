@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Eloquent;
-use Omnipay;
 use Utils;
 
 /**
@@ -11,17 +10,6 @@ use Utils;
  */
 class Gateway extends Eloquent
 {
-    /**
-     * @var bool
-     */
-    public $timestamps = true;
-
-    protected $fillable = [
-        'provider',
-        'is_offsite',
-        'sort_order',
-    ];
-
     /**
      * @var array
      */
@@ -34,9 +22,6 @@ class Gateway extends Eloquent
         GATEWAY_TYPE_TOKEN,
         GATEWAY_TYPE_GOCARDLESS,
     ];
-
-    // these will appear in the primary gateway select
-    // the rest are shown when selecting 'more options'
     /**
      * @var array
      */
@@ -54,9 +39,6 @@ class Gateway extends Eloquent
         GATEWAY_CUSTOM2,
         GATEWAY_CUSTOM3,
     ];
-
-    // allow adding these gateway if another gateway
-    // is already configured
     /**
      * @var array
      */
@@ -69,6 +51,8 @@ class Gateway extends Eloquent
         GATEWAY_CUSTOM3,
     ];
 
+    // these will appear in the primary gateway select
+    // the rest are shown when selecting 'more options'
     /**
      * @var array
      */
@@ -84,6 +68,8 @@ class Gateway extends Eloquent
         'returnUrl',
     ];
 
+    // allow adding these gateway if another gateway
+    // is already configured
     /**
      * @var array
      */
@@ -96,24 +82,15 @@ class Gateway extends Eloquent
         // Payfast
         'pdtKey',
     ];
-
     /**
-     * @return string
+     * @var bool
      */
-    public function getLogoUrl()
-    {
-        return '/images/gateways/logo_'.$this->provider.'.png';
-    }
-
-    /**
-     * @param $gatewayId
-     *
-     * @return bool
-     */
-    public function isGateway($gatewayId)
-    {
-        return $this->id == $gatewayId;
-    }
+    public $timestamps = true;
+    protected $fillable = [
+        'provider',
+        'is_offsite',
+        'sort_order',
+    ];
 
     /**
      * @param $type
@@ -138,6 +115,24 @@ class Gateway extends Eloquent
     }
 
     /**
+     * @return string
+     */
+    public function getLogoUrl()
+    {
+        return '/images/gateways/logo_' . $this->provider . '.png';
+    }
+
+    /**
+     * @param $gatewayId
+     *
+     * @return bool
+     */
+    public function isGateway($gatewayId)
+    {
+        return $this->id == $gatewayId;
+    }
+
+    /**
      * @param $query
      * @param $accountGatewaysIds
      */
@@ -147,7 +142,7 @@ class Gateway extends Eloquent
             ->whereIn('id', static::$preferred)
             ->whereIn('id', $accountGatewaysIds);
 
-        if (! Utils::isNinja()) {
+        if (!Utils::isNinja()) {
             $query->where('id', '!=', GATEWAY_WEPAY);
         }
     }
@@ -188,7 +183,7 @@ class Gateway extends Eloquent
             $link = url('/gateways/create?wepay=true');
         }
 
-        $key = 'texts.gateway_help_'.$this->id;
+        $key = 'texts.gateway_help_' . $this->id;
         $str = trans($key, [
             'link' => "<a href='$link' >Click here</a>",
             'complete_link' => url('/complete'),

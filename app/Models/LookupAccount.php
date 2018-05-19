@@ -17,14 +17,9 @@ class LookupAccount extends LookupModel
         'account_key',
     ];
 
-    public function lookupCompany()
-    {
-        return $this->belongsTo('App\Models\LookupCompany');
-    }
-
     public static function createAccount($accountKey, $companyId)
     {
-        if (! env('MULTI_DB_ENABLED')) {
+        if (!env('MULTI_DB_ENABLED')) {
             return;
         }
 
@@ -33,9 +28,9 @@ class LookupAccount extends LookupModel
 
         $server = DbServer::whereName($current)->firstOrFail();
         $lookupCompany = LookupCompany::whereDbServerId($server->id)
-                            ->whereCompanyId($companyId)->first();
+            ->whereCompanyId($companyId)->first();
 
-        if (! $lookupCompany) {
+        if (!$lookupCompany) {
             $lookupCompany = LookupCompany::create([
                 'db_server_id' => $server->id,
                 'company_id' => $companyId,
@@ -50,14 +45,9 @@ class LookupAccount extends LookupModel
         static::setDbServer($current);
     }
 
-    public function getDbServer()
-    {
-        return $this->lookupCompany->dbServer->name;
-    }
-
     public static function updateAccount($accountKey, $account)
     {
-        if (! env('MULTI_DB_ENABLED')) {
+        if (!env('MULTI_DB_ENABLED')) {
             return;
         }
 
@@ -65,7 +55,7 @@ class LookupAccount extends LookupModel
         config(['database.default' => DB_NINJA_LOOKUP]);
 
         $lookupAccount = LookupAccount::whereAccountKey($accountKey)
-                            ->firstOrFail();
+            ->firstOrFail();
 
         $lookupAccount->subdomain = $account->subdomain ?: null;
         $lookupAccount->save();
@@ -75,7 +65,7 @@ class LookupAccount extends LookupModel
 
     public static function validateField($field, $value, $account = false)
     {
-        if (! env('MULTI_DB_ENABLED')) {
+        if (!env('MULTI_DB_ENABLED')) {
             return true;
         }
 
@@ -86,13 +76,23 @@ class LookupAccount extends LookupModel
         $lookupAccount = LookupAccount::where($field, '=', $value)->first();
 
         if ($account) {
-            $isValid = ! $lookupAccount || ($lookupAccount->account_key == $account->account_key);
+            $isValid = !$lookupAccount || ($lookupAccount->account_key == $account->account_key);
         } else {
-            $isValid = ! $lookupAccount;
+            $isValid = !$lookupAccount;
         }
 
         config(['database.default' => $current]);
 
         return $isValid;
+    }
+
+    public function lookupCompany()
+    {
+        return $this->belongsTo('App\Models\LookupCompany');
+    }
+
+    public function getDbServer()
+    {
+        return $this->lookupCompany->dbServer->name;
     }
 }

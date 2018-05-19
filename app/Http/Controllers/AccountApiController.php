@@ -5,18 +5,14 @@ namespace App\Http\Controllers;
 use App\Events\UserSignedUp;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateAccountRequest;
-use App\Models\Account;
 use App\Models\User;
 use App\Ninja\OAuth\OAuth;
 use App\Ninja\Repositories\AccountRepository;
 use App\Ninja\Transformers\AccountTransformer;
 use App\Ninja\Transformers\UserAccountTransformer;
-use App\Services\AuthService;
 use Auth;
 use Cache;
-use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Response;
 use Socialite;
 use Utils;
@@ -46,17 +42,31 @@ class AccountApiController extends BaseAPIController
 
     public function register(RegisterRequest $request)
     {
-        if (! \App\Models\LookupUser::validateField('email', $request->email)) {
+        if (!\App\Models\LookupUser::validateField('email', $request->email)) {
             return $this->errorResponse(['message' => trans('texts.email_taken')], 500);
         }
 
-        $account = $this->accountRepo->create($request->first_name, $request->last_name, $request->email, $request->password);
+        $account = $this->accountRepo->create($request->first_name, $request->last_name, $request->email,
+            $request->password);
         $user = $account->users()->first();
 
         Auth::login($user);
         event(new UserSignedUp());
 
         return $this->processLogin($request);
+    }
+
+    private function processLogin(Request $request)
+    {
+        // Create a new token only if one does not already exist
+        $user = Auth::user();
+        $this->accountRepo->createTokens($user, $request->token_name);
+
+        $users = $this->accountRepo->findUsers($user, 'account.account_tokens');
+        $transformer = new UserAccountTransformer($user->account, $request->serializer, $request->token_name);
+        $data = $this->createCollection($users, $transformer, 'user_account');
+
+        return $this->response($data);
     }
 
     public function login(Request $request)
@@ -83,19 +93,6 @@ class AccountApiController extends BaseAPIController
             sleep(ERROR_DELAY);
             return $this->errorResponse(['message' => 'Invalid credentials'], 401);
         }
-    }
-
-    private function processLogin(Request $request)
-    {
-        // Create a new token only if one does not already exist
-        $user = Auth::user();
-        $this->accountRepo->createTokens($user, $request->token_name);
-
-        $users = $this->accountRepo->findUsers($user, 'account.account_tokens');
-        $transformer = new UserAccountTransformer($user->account, $request->serializer, $request->token_name);
-        $data = $this->createCollection($users, $transformer, 'user_account');
-
-        return $this->response($data);
     }
 
     public function show(Request $request)
@@ -155,7 +152,7 @@ class AccountApiController extends BaseAPIController
             if ($devices[$x]['email'] == $request->email) {
                 $devices[$x]['token'] = $request->token; //update
                 $devices[$x]['device'] = $request->device;
-                    $account->devices = json_encode($devices);
+                $account->devices = json_encode($devices);
                 $account->save();
                 $devices[$x]['account_key'] = $account->account_key;
 
@@ -183,16 +180,17 @@ class AccountApiController extends BaseAPIController
         return $this->response($newDevice);
     }
 
-    public function removeDeviceToken(Request $request) {
+    public function removeDeviceToken(Request $request)
+    {
 
         $account = Auth::user()->account;
 
         $devices = json_decode($account->devices, true);
 
-        for($x=0; $x<count($devices); $x++)
-        {
-            if($request->token == $devices[$x]['token'])
+        for ($x = 0; $x < count($devices); $x++) {
+            if ($request->token == $devices[$x]['token']) {
                 unset($devices[$x]);
+            }
         }
 
         $account->devices = json_encode(array_values($devices));
@@ -245,13 +243,14 @@ class AccountApiController extends BaseAPIController
         if ($user) {
             Auth::login($user);
             return $this->processLogin($request);
-        }
-        else
+        } else {
             return $this->errorResponse(['message' => 'Invalid credentials'], 401);
+        }
 
     }
 
-    public function iosSubscriptionStatus() {
+    public function iosSubscriptionStatus()
+    {
 
         //stubbed for iOS callbacks
 

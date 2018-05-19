@@ -43,7 +43,7 @@ class RegisterRequest extends Request
     public function response(array $errors)
     {
         /* If the user is not validating from a mobile app - pass through parent::response */
-        if (! isset($this->req->api_secret)) {
+        if (!isset($this->req->api_secret)) {
             return parent::response($errors);
         }
 

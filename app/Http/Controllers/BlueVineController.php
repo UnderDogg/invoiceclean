@@ -25,12 +25,12 @@ class BlueVineController extends BaseController
             'partner_internal_business_id' => 'ninja_account_' . $user->account_id,
         ];
 
-        if (! empty(Input::get('quote_type_factoring'))) {
+        if (!empty(Input::get('quote_type_factoring'))) {
             $data['invoice_factoring_offer'] = true;
             $data['desired_credit_line'] = intval(Input::get('desired_credit_limit')['invoice_factoring']);
         }
 
-        if (! empty(Input::get('quote_type_loc'))) {
+        if (!empty(Input::get('quote_type_loc'))) {
             $data['line_of_credit_offer'] = true;
             $data['desired_credit_line_for_loc'] = intval(Input::get('desired_credit_limit')['line_of_credit']);
         }

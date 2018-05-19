@@ -28,7 +28,7 @@ class ClientPresenter extends EntityPresenter
     {
         $client = $this->entity;
 
-        if (! $client->website) {
+        if (!$client->website) {
             return '';
         }
 
@@ -49,11 +49,12 @@ class ClientPresenter extends EntityPresenter
     {
         $client = $this->entity;
 
-        if (! $client->payment_terms) {
+        if (!$client->payment_terms) {
             return '';
         }
 
-        return sprintf('%s: %s %s', trans('texts.payment_terms'), trans('texts.payment_terms_net'), $client->defaultDaysDue());
+        return sprintf('%s: %s %s', trans('texts.payment_terms'), trans('texts.payment_terms_net'),
+            $client->defaultDaysDue());
     }
 
     public function address($addressType = ADDRESS_BILLING, $showHeader = false)
@@ -102,29 +103,28 @@ class ClientPresenter extends EntityPresenter
         }
     }
 
+    /**
+     * @return string
+     */
+    public function defaultTaskRate()
+    {
+        if ($rate = $this->taskRate()) {
+            return $rate;
+        } else {
+            return $this->entity->account->present()->taskRate;
+        }
+    }
 
     /**
      * @return string
      */
     public function taskRate()
     {
-      if (floatval($this->entity->task_rate)) {
-          return Utils::roundSignificant($this->entity->task_rate);
-      } else {
-          return '';
-      }
-    }
-
-    /**
-     * @return string
-     */
-    public function defaultTaskRate()
-    {
-      if ($rate = $this->taskRate()) {
-          return $rate;
-      } else {
-          return $this->entity->account->present()->taskRate;
-      }
+        if (floatval($this->entity->task_rate)) {
+            return Utils::roundSignificant($this->entity->task_rate);
+        } else {
+            return '';
+        }
     }
 
 }

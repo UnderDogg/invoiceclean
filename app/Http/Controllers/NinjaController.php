@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Libraries\CurlUtils;
 use App\Models\Affiliate;
 use App\Models\Country;
 use App\Models\License;
 use App\Ninja\Mailers\ContactMailer;
 use App\Ninja\Repositories\AccountRepository;
-use App\Libraries\CurlUtils;
 use Auth;
 use Cache;
 use CreditCard;
 use Input;
-use Omnipay;
 use Session;
 use URL;
 use Utils;
@@ -35,55 +34,12 @@ class NinjaController extends BaseController
      * NinjaController constructor.
      *
      * @param AccountRepository $accountRepo
-     * @param ContactMailer     $contactMailer
+     * @param ContactMailer $contactMailer
      */
     public function __construct(AccountRepository $accountRepo, ContactMailer $contactMailer)
     {
         $this->accountRepo = $accountRepo;
         $this->contactMailer = $contactMailer;
-    }
-
-    /**
-     * @param array     $input
-     * @param Affiliate $affiliate
-     *
-     * @return array
-     */
-    private function getLicensePaymentDetails(array $input, Affiliate $affiliate)
-    {
-        $country = Country::find($input['country_id']);
-
-        $data = [
-            'firstName' => $input['first_name'],
-            'lastName' => $input['last_name'],
-            'email' => $input['email'],
-            'number' => $input['card_number'],
-            'expiryMonth' => $input['expiration_month'],
-            'expiryYear' => $input['expiration_year'],
-            'cvv' => $input['cvv'],
-            'billingAddress1' => $input['address1'],
-            'billingAddress2' => $input['address2'],
-            'billingCity' => $input['city'],
-            'billingState' => $input['state'],
-            'billingPostcode' => $input['postal_code'],
-            'billingCountry' => $country->iso_3166_2,
-            'shippingAddress1' => $input['address1'],
-            'shippingAddress2' => $input['address2'],
-            'shippingCity' => $input['city'],
-            'shippingState' => $input['state'],
-            'shippingPostcode' => $input['postal_code'],
-            'shippingCountry' => $country->iso_3166_2,
-        ];
-
-        $card = new CreditCard($data);
-
-        return [
-            'amount' => $affiliate->price,
-            'card' => $card,
-            'currency' => 'USD',
-            'returnUrl' => URL::to('license_complete'),
-            'cancelUrl' => URL::to('/'),
-        ];
     }
 
     /**
@@ -103,11 +59,11 @@ class NinjaController extends BaseController
 
         if (Input::has('product_id')) {
             session(['product_id' => Input::get('product_id')]);
-        } elseif (! Session::has('product_id')) {
+        } elseif (!Session::has('product_id')) {
             session(['product_id' => PRODUCT_ONE_CLICK_INSTALL]);
         }
 
-        if (! Session::get('affiliate_id')) {
+        if (!Session::get('affiliate_id')) {
             return Utils::fatalError();
         }
 
@@ -188,12 +144,12 @@ class NinjaController extends BaseController
                 $details = self::getLicensePaymentDetails(Input::all(), $affiliate);
 
                 $gateway = Omnipay::create($accountGateway->gateway->provider);
-                $gateway->initialize((array) $accountGateway->getConfig());
+                $gateway->initialize((array)$accountGateway->getConfig());
                 $response = $gateway->purchase($details)->send();
 
                 $ref = $response->getTransactionReference();
 
-                if (! $response->isSuccessful() || ! $ref) {
+                if (!$response->isSuccessful() || !$ref) {
                     $this->error('License', $response->getMessage(), $accountGateway);
 
                     return redirect()->to('license')->withInput();
@@ -221,10 +177,11 @@ class NinjaController extends BaseController
             ];
 
             $name = "{$license->first_name} {$license->last_name}";
-            $this->contactMailer->sendLicensePaymentConfirmation($name, $license->email, $affiliate->price, $license->license_key, $license->product_id);
+            $this->contactMailer->sendLicensePaymentConfirmation($name, $license->email, $affiliate->price,
+                $license->license_key, $license->product_id);
 
             if (Session::has('return_url')) {
-                $data['redirectTo'] = Session::get('return_url')."?license_key={$license->license_key}&product_id=".Session::get('product_id');
+                $data['redirectTo'] = Session::get('return_url') . "?license_key={$license->license_key}&product_id=" . Session::get('product_id');
                 $data['message'] = 'Redirecting to ' . Session::get('return_url');
             }
 
@@ -234,6 +191,61 @@ class NinjaController extends BaseController
 
             return redirect()->to('license')->withInput();
         }
+    }
+
+    /**
+     * @param array $input
+     * @param Affiliate $affiliate
+     *
+     * @return array
+     */
+    private function getLicensePaymentDetails(array $input, Affiliate $affiliate)
+    {
+        $country = Country::find($input['country_id']);
+
+        $data = [
+            'firstName' => $input['first_name'],
+            'lastName' => $input['last_name'],
+            'email' => $input['email'],
+            'number' => $input['card_number'],
+            'expiryMonth' => $input['expiration_month'],
+            'expiryYear' => $input['expiration_year'],
+            'cvv' => $input['cvv'],
+            'billingAddress1' => $input['address1'],
+            'billingAddress2' => $input['address2'],
+            'billingCity' => $input['city'],
+            'billingState' => $input['state'],
+            'billingPostcode' => $input['postal_code'],
+            'billingCountry' => $country->iso_3166_2,
+            'shippingAddress1' => $input['address1'],
+            'shippingAddress2' => $input['address2'],
+            'shippingCity' => $input['city'],
+            'shippingState' => $input['state'],
+            'shippingPostcode' => $input['postal_code'],
+            'shippingCountry' => $country->iso_3166_2,
+        ];
+
+        $card = new CreditCard($data);
+
+        return [
+            'amount' => $affiliate->price,
+            'card' => $card,
+            'currency' => 'USD',
+            'returnUrl' => URL::to('license_complete'),
+            'cancelUrl' => URL::to('/'),
+        ];
+    }
+
+    private function error($type, $error, $accountGateway = false, $exception = false)
+    {
+        $message = '';
+        if ($accountGateway && $accountGateway->gateway) {
+            $message = $accountGateway->gateway->name . ': ';
+        }
+        $message .= $error ?: trans('texts.payment_error');
+        Session::flash('error', $message);
+        Utils::logError("Payment Error [{$type}]: " . ($exception ? Utils::getErrorString($exception) : $message),
+            'PHP', true);
     }
 
     /**
@@ -255,9 +267,9 @@ class NinjaController extends BaseController
         }
 
         $license = License::where('license_key', '=', $licenseKey)
-                    ->where('is_claimed', '<', 10)
-                    ->where('product_id', '=', $productId)
-                    ->first();
+            ->where('is_claimed', '<', 10)
+            ->where('product_id', '=', $productId)
+            ->first();
 
         if ($license) {
             if ($license->transaction_reference != 'TEST_MODE') {
@@ -273,17 +285,6 @@ class NinjaController extends BaseController
         } else {
             return RESULT_FAILURE;
         }
-    }
-
-    private function error($type, $error, $accountGateway = false, $exception = false)
-    {
-        $message = '';
-        if ($accountGateway && $accountGateway->gateway) {
-            $message = $accountGateway->gateway->name . ': ';
-        }
-        $message .= $error ?: trans('texts.payment_error');
-        Session::flash('error', $message);
-        Utils::logError("Payment Error [{$type}]: " . ($exception ? Utils::getErrorString($exception) : $message), 'PHP', true);
     }
 
     public function hideWhiteLabelMessage()

@@ -4,15 +4,12 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Foundation\Validation\ValidationException;
 use Illuminate\Http\Exception\HttpResponseException;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Session\TokenMismatchException;
 use Redirect;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Utils;
 
@@ -46,12 +43,12 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $e)
     {
-        if (! $this->shouldReport($e)) {
+        if (!$this->shouldReport($e)) {
             return false;
         }
 
         // if these classes don't exist the install is broken, maybe due to permissions
-        if (! class_exists('Utils') || ! class_exists('Crawler')) {
+        if (!class_exists('Utils') || !class_exists('Crawler')) {
             return parent::report($e);
         }
 
@@ -78,7 +75,7 @@ class Handler extends ExceptionHandler
             return false;
         }
 
-        if (! Utils::isTravis()) {
+        if (!Utils::isTravis()) {
             Utils::logError(Utils::getErrorString($e));
             $stacktrace = date('Y-m-d h:i:s') . ' ' . $e->getMessage() . ': ' . $e->getTraceAsString() . "\n\n";
             if (config('app.log') == 'single') {
@@ -96,7 +93,7 @@ class Handler extends ExceptionHandler
      * Render an exception into an HTTP response.
      *
      * @param \Illuminate\Http\Request $request
-     * @param \Exception               $e
+     * @param \Exception $e
      *
      * @return \Illuminate\Http\Response
      */
@@ -106,19 +103,19 @@ class Handler extends ExceptionHandler
             return Redirect::to('/');
         }
 
-        if (! class_exists('Utils')) {
+        if (!class_exists('Utils')) {
             return parent::render($request, $e);
         }
 
         if ($e instanceof TokenMismatchException) {
-            if (! in_array($request->path(), ['get_started', 'save_sidebar_state'])) {
+            if (!in_array($request->path(), ['get_started', 'save_sidebar_state'])) {
                 // https://gist.github.com/jrmadsen67/bd0f9ad0ef1ed6bb594e
                 return redirect()
-                        ->back()
-                        ->withInput($request->except('password', '_token'))
-                        ->with([
-                            'warning' => trans('texts.token_expired'),
-                        ]);
+                    ->back()
+                    ->withInput($request->except('password', '_token'))
+                    ->with([
+                        'warning' => trans('texts.token_expired'),
+                    ]);
             }
         }
 
@@ -155,10 +152,10 @@ class Handler extends ExceptionHandler
 
         // In production, except for maintenance mode, we'll show a custom error screen
         if (Utils::isNinjaProd()
-            && ! Utils::isDownForMaintenance()
-            && ! ($e instanceof HttpResponseException)
-            && ! ($e instanceof \Illuminate\Validation\ValidationException)
-            && ! ($e instanceof ValidationException)) {
+            && !Utils::isDownForMaintenance()
+            && !($e instanceof HttpResponseException)
+            && !($e instanceof \Illuminate\Validation\ValidationException)
+            && !($e instanceof ValidationException)) {
             $data = [
                 'error' => get_class($e),
                 'hideHeader' => true,
@@ -173,8 +170,8 @@ class Handler extends ExceptionHandler
     /**
      * Convert an authentication exception into an unauthenticated response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Illuminate\Auth\AuthenticationException  $exception
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Illuminate\Auth\AuthenticationException $exception
      * @return \Illuminate\Http\Response
      */
     protected function unauthenticated($request, AuthenticationException $exception)

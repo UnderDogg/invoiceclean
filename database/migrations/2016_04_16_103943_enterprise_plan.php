@@ -20,7 +20,7 @@ class EnterprisePlan extends Migration
         $timeout = max($timeout - 10, $timeout * .9);
         $startTime = time();
 
-        if (! Schema::hasTable('companies')) {
+        if (!Schema::hasTable('companies')) {
             Schema::create('companies', function ($table) {
                 $table->increments('id');
 
@@ -47,7 +47,7 @@ class EnterprisePlan extends Migration
             });
         }
 
-        if (! Schema::hasColumn('accounts', 'company_id')) {
+        if (!Schema::hasColumn('accounts', 'company_id')) {
             Schema::table('accounts', function ($table) {
                 $table->unsignedInteger('company_id')->nullable();
             });
@@ -115,7 +115,7 @@ class EnterprisePlan extends Migration
 
     private function upAccounts($primaryAccount, $otherAccounts = [])
     {
-        if (! $primaryAccount) {
+        if (!$primaryAccount) {
             $primaryAccount = $otherAccounts->first();
         }
 
@@ -135,7 +135,7 @@ class EnterprisePlan extends Migration
             $expires = $expires->format('Y-m-d');
 
             // check for self host white label licenses
-            if (! Utils::isNinjaProd()) {
+            if (!Utils::isNinjaProd()) {
                 if ($company->plan_paid) {
                     $company->plan = 'white_label';
                     // old ones were unlimited, new ones are yearly
@@ -161,7 +161,7 @@ class EnterprisePlan extends Migration
         $primaryAccount->company_id = $company->id;
         $primaryAccount->save();
 
-        if (! empty($otherAccounts)) {
+        if (!empty($otherAccounts)) {
             foreach ($otherAccounts as $account) {
                 if ($account && $account->id != $primaryAccount->id) {
                     $account->company_id = $company->id;
@@ -192,7 +192,7 @@ class EnterprisePlan extends Migration
         $timeout = max($timeout - 10, $timeout * .9);
         $startTime = time();
 
-        if (! Schema::hasColumn('accounts', 'pro_plan_paid')) {
+        if (!Schema::hasColumn('accounts', 'pro_plan_paid')) {
             Schema::table('accounts', function ($table) {
                 $table->date('pro_plan_paid')->nullable();
                 $table->date('pro_plan_trial')->nullable();

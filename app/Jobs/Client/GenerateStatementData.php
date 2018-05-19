@@ -2,11 +2,11 @@
 
 namespace App\Jobs\Client;
 
-use Utils;
-use App\Models\InvoiceItem;
-use App\Models\Invoice;
-use App\Models\Payment;
 use App\Models\Eloquent;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use App\Models\Payment;
+use Utils;
 
 class GenerateStatementData
 {
@@ -64,9 +64,9 @@ class GenerateStatementData
             $invoices->where('invoice_status_id', '!=', INVOICE_STATUS_PAID);
         }
 
-        if ($statusId == INVOICE_STATUS_PAID || ! $statusId) {
+        if ($statusId == INVOICE_STATUS_PAID || !$statusId) {
             $invoices->where('invoice_date', '>=', $this->options['start_date'])
-                    ->where('invoice_date', '<=', $this->options['end_date']);
+                ->where('invoice_date', '<=', $this->options['end_date']);
         }
 
         if ($this->contact) {
@@ -78,7 +78,7 @@ class GenerateStatementData
         $invoices = $invoices->get();
         $data = collect();
 
-        for ($i=0; $i<$invoices->count(); $i++) {
+        for ($i = 0; $i < $invoices->count(); $i++) {
             $invoice = $invoices[$i];
             $item = new InvoiceItem();
             $item->id = $invoice->id;
@@ -95,36 +95,6 @@ class GenerateStatementData
         if ($this->options['show_aging']) {
             $aging = $this->getAging($invoices);
             $data = $data->merge($aging);
-        }
-
-        return $data;
-    }
-
-    private function getPayments($invoices)
-    {
-        $payments = Payment::with('invoice', 'payment_type')
-            ->withArchived()
-            ->whereClientId($this->client->id)
-            //->excludeFailed()
-            ->where('payment_date', '>=', $this->options['start_date'])
-            ->where('payment_date', '<=', $this->options['end_date']);
-
-        if ($this->contact) {
-            $payments->whereIn('invoice_id', $invoices->pluck('id'));
-        }
-
-        $payments = $payments->get();
-        $data = collect();
-
-        for ($i=0; $i<$payments->count(); $i++) {
-            $payment = $payments[$i];
-            $item = new InvoiceItem();
-            $item->product_key = $payment->invoice->invoice_number;
-            $item->custom_value1 = $payment->payment_date;
-            $item->custom_value2 = $payment->present()->payment_type;
-            $item->cost = $payment->getCompletedAmount();
-            $item->invoice_item_type_id = 3;
-            $data->push($item);
         }
 
         return $data;
@@ -154,6 +124,36 @@ class GenerateStatementData
         $item->cost = $ageGroups['age_group_120'];
         $item->invoice_item_type_id = 4;
         $data->push($item);
+
+        return $data;
+    }
+
+    private function getPayments($invoices)
+    {
+        $payments = Payment::with('invoice', 'payment_type')
+            ->withArchived()
+            ->whereClientId($this->client->id)
+            //->excludeFailed()
+            ->where('payment_date', '>=', $this->options['start_date'])
+            ->where('payment_date', '<=', $this->options['end_date']);
+
+        if ($this->contact) {
+            $payments->whereIn('invoice_id', $invoices->pluck('id'));
+        }
+
+        $payments = $payments->get();
+        $data = collect();
+
+        for ($i = 0; $i < $payments->count(); $i++) {
+            $payment = $payments[$i];
+            $item = new InvoiceItem();
+            $item->product_key = $payment->invoice->invoice_number;
+            $item->custom_value1 = $payment->payment_date;
+            $item->custom_value2 = $payment->present()->payment_type;
+            $item->cost = $payment->getCompletedAmount();
+            $item->invoice_item_type_id = 3;
+            $data->push($item);
+        }
 
         return $data;
     }

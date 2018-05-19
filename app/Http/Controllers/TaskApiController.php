@@ -44,9 +44,9 @@ class TaskApiController extends BaseAPIController
     public function index()
     {
         $tasks = Task::scope()
-                        ->withTrashed()
-                        ->with('client', 'invoice', 'project')
-                        ->orderBy('created_at', 'desc');
+            ->withTrashed()
+            ->with('client', 'invoice', 'project')
+            ->orderBy('created_at', 'desc');
 
         return $this->listResponse($tasks);
     }
@@ -110,22 +110,22 @@ class TaskApiController extends BaseAPIController
             $data['client'] = $data['client_id'];
         }
 
-        if (! empty($data['time_details'])) {
+        if (!empty($data['time_details'])) {
             $timeLog = [];
             foreach ($data['time_details'] as $detail) {
                 $startTime = strtotime($detail['start_datetime']);
                 $endTime = false;
-                if (! empty($detail['end_datetime'])) {
+                if (!empty($detail['end_datetime'])) {
                     $endTime = strtotime($detail['end_datetime']);
                 } else {
                     $duration = 0;
-                    if (! empty($detail['duration_seconds'])) {
+                    if (!empty($detail['duration_seconds'])) {
                         $duration += $detail['duration_seconds'];
                     }
-                    if (! empty($detail['duration_minutes'])) {
+                    if (!empty($detail['duration_minutes'])) {
                         $duration += $detail['duration_minutes'] * 60;
                     }
-                    if (! empty($detail['duration_hours'])) {
+                    if (!empty($detail['duration_hours'])) {
                         $duration += $detail['duration_hours'] * 60 * 60;
                     }
                     if ($duration) {
@@ -133,7 +133,7 @@ class TaskApiController extends BaseAPIController
                     }
                 }
                 $timeLog[] = [$startTime, $endTime];
-                if (! $endTime) {
+                if (!$endTime) {
                     $data['is_running'] = true;
                 }
             }

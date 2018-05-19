@@ -24,20 +24,12 @@ class ExpenseCategoryService extends BaseService
      * CreditService constructor.
      *
      * @param ExpenseCategoryRepository $creditRepo
-     * @param DatatableService          $datatableService
+     * @param DatatableService $datatableService
      */
     public function __construct(ExpenseCategoryRepository $categoryRepo, DatatableService $datatableService)
     {
         $this->categoryRepo = $categoryRepo;
         $this->datatableService = $datatableService;
-    }
-
-    /**
-     * @return CreditRepository
-     */
-    protected function getRepo()
-    {
-        return $this->categoryRepo;
     }
 
     /**
@@ -64,5 +56,13 @@ class ExpenseCategoryService extends BaseService
         $query = $this->categoryRepo->find($search);
 
         return $this->datatableService->createDatatable($datatable, $query);
+    }
+
+    /**
+     * @return CreditRepository
+     */
+    protected function getRepo()
+    {
+        return $this->categoryRepo;
     }
 }

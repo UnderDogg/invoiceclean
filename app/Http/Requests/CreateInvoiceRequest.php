@@ -36,7 +36,7 @@ class CreateInvoiceRequest extends InvoiceRequest
 
         if ($this->user()->account->client_number_counter) {
             $clientId = Client::getPrivateId(request()->input('client')['public_id']);
-            $rules['client.id_number'] = 'unique:clients,id_number,'.$clientId.',id,account_id,' . $this->user()->account_id;
+            $rules['client.id_number'] = 'unique:clients,id_number,' . $clientId . ',id,account_id,' . $this->user()->account_id;
         }
 
         /* There's a problem parsing the dates

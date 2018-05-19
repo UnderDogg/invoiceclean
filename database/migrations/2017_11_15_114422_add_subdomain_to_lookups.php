@@ -1,9 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
 use App\Models\Subscription;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\Schema;
 
 class AddSubdomainToLookups extends Migration
 {
@@ -72,9 +71,9 @@ class AddSubdomainToLookups extends Migration
 
         $accountPublicIds = [];
         foreach (Subscription::withTrashed()
-            ->with('account.users')
-            ->orderBy('id')
-            ->get() as $subscription) {
+                     ->with('account.users')
+                     ->orderBy('id')
+                     ->get() as $subscription) {
             $accountId = $subscription->account_id;
             if (isset($accountPublicIds[$accountId])) {
                 $publicId = $accountPublicIds[$accountId];

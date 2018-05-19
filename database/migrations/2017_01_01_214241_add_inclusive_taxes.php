@@ -11,7 +11,7 @@ class AddInclusiveTaxes extends Migration
      */
     public function up()
     {
-        if (! Schema::hasColumn('tax_rates', 'is_inclusive')) {
+        if (!Schema::hasColumn('tax_rates', 'is_inclusive')) {
             Schema::table('tax_rates', function ($table) {
                 $table->boolean('is_inclusive')->default(false);
             });

@@ -16,7 +16,7 @@ class ExpenseCategoryDatatable extends EntityDatatable
             [
                 'name',
                 function ($model) {
-                    if (! Auth::user()->can('editByOwner', [ENTITY_EXPENSE_CATEGORY, $model->user_id])) {
+                    if (!Auth::user()->can('editByOwner', [ENTITY_EXPENSE_CATEGORY, $model->user_id])) {
                         return $model->category;
                     }
 

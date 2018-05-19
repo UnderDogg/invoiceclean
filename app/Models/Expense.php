@@ -88,6 +88,20 @@ class Expense extends EntityModel
         ];
     }
 
+    public static function getStatuses($entityType = false)
+    {
+        $statuses = [];
+        $statuses[EXPENSE_STATUS_LOGGED] = trans('texts.logged');
+        $statuses[EXPENSE_STATUS_PENDING] = trans('texts.pending');
+        $statuses[EXPENSE_STATUS_INVOICED] = trans('texts.invoiced');
+        $statuses[EXPENSE_STATUS_BILLED] = trans('texts.billed');
+        $statuses[EXPENSE_STATUS_PAID] = trans('texts.paid');
+        $statuses[EXPENSE_STATUS_UNPAID] = trans('texts.unpaid');
+
+
+        return $statuses;
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -160,6 +174,13 @@ class Expense extends EntityModel
         return $this->belongsTo('App\Models\RecurringExpense');
     }
 
+    /**
+     * @return mixed
+     */
+    public function getDisplayName()
+    {
+        return $this->getName();
+    }
 
     /**
      * @return mixed
@@ -173,14 +194,6 @@ class Expense extends EntityModel
         } else {
             return '#' . $this->public_id;
         }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDisplayName()
-    {
-        return $this->getName();
     }
 
     /**
@@ -216,14 +229,6 @@ class Expense extends EntityModel
     }
 
     /**
-     * @return float
-     */
-    public function convertedAmount()
-    {
-        return round($this->amount * $this->exchange_rate, 2);
-    }
-
-    /**
      * @return array
      */
     public function toArray()
@@ -235,6 +240,14 @@ class Expense extends EntityModel
         }
 
         return $array;
+    }
+
+    /**
+     * @return float
+     */
+    public function convertedAmount()
+    {
+        return round($this->amount * $this->exchange_rate, 2);
     }
 
     /**
@@ -272,18 +285,33 @@ class Expense extends EntityModel
         return Utils::calculateTaxes($this->amount, $this->tax_rate1, $this->tax_rate2);
     }
 
-    public static function getStatuses($entityType = false)
+    public function statusClass()
     {
-        $statuses = [];
-        $statuses[EXPENSE_STATUS_LOGGED] = trans('texts.logged');
-        $statuses[EXPENSE_STATUS_PENDING] = trans('texts.pending');
-        $statuses[EXPENSE_STATUS_INVOICED] = trans('texts.invoiced');
-        $statuses[EXPENSE_STATUS_BILLED] = trans('texts.billed');
-        $statuses[EXPENSE_STATUS_PAID] = trans('texts.paid');
-        $statuses[EXPENSE_STATUS_UNPAID] = trans('texts.unpaid');
+        $balance = $this->invoice ? $this->invoice->balance : 0;
 
+        return static::calcStatusClass($this->should_be_invoiced, $this->invoice_id, $balance);
+    }
 
-        return $statuses;
+    public static function calcStatusClass($shouldBeInvoiced, $invoiceId, $balance)
+    {
+        if ($invoiceId) {
+            if (floatval($balance) > 0) {
+                return 'default';
+            } else {
+                return 'success';
+            }
+        } elseif ($shouldBeInvoiced) {
+            return 'warning';
+        } else {
+            return 'primary';
+        }
+    }
+
+    public function statusLabel()
+    {
+        $balance = $this->invoice ? $this->invoice->balance : 0;
+
+        return static::calcStatusLabel($this->should_be_invoiced, $this->invoice_id, $balance, $this->payment_date);
     }
 
     public static function calcStatusLabel($shouldBeInvoiced, $invoiceId, $balance, $paymentDate)
@@ -307,35 +335,6 @@ class Expense extends EntityModel
         }
 
         return $label;
-    }
-
-    public static function calcStatusClass($shouldBeInvoiced, $invoiceId, $balance)
-    {
-        if ($invoiceId) {
-            if (floatval($balance) > 0) {
-                return 'default';
-            } else {
-                return 'success';
-            }
-        } elseif ($shouldBeInvoiced) {
-            return 'warning';
-        } else {
-            return 'primary';
-        }
-    }
-
-    public function statusClass()
-    {
-        $balance = $this->invoice ? $this->invoice->balance : 0;
-
-        return static::calcStatusClass($this->should_be_invoiced, $this->invoice_id, $balance);
-    }
-
-    public function statusLabel()
-    {
-        $balance = $this->invoice ? $this->invoice->balance : 0;
-
-        return static::calcStatusLabel($this->should_be_invoiced, $this->invoice_id, $balance, $this->payment_date);
     }
 }
 

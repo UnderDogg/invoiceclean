@@ -20,7 +20,7 @@ class ApiCheck
      * Handle an incoming request.
      *
      * @param \Illuminate\Http\Request $request
-     * @param \Closure                 $next
+     * @param \Closure $next
      *
      * @return mixed
      */
@@ -41,7 +41,7 @@ class ApiCheck
 
         if ($loggingIn) {
             // check API secret
-            if (! $hasApiSecret) {
+            if (!$hasApiSecret) {
                 sleep(ERROR_DELAY);
                 $error['error'] = ['message' => 'Invalid value for API_SECRET'];
 
@@ -65,11 +65,11 @@ class ApiCheck
             }
         }
 
-        if (! Utils::isNinja() && ! $loggingIn) {
+        if (!Utils::isNinja() && !$loggingIn) {
             return $next($request);
         }
 
-        if (! Utils::hasFeature(FEATURE_API) && ! $hasApiSecret) {
+        if (!Utils::hasFeature(FEATURE_API) && !$hasApiSecret) {
             $error['error'] = ['message' => 'API requires pro plan'];
 
             return Response::json($error, 403, $headers);

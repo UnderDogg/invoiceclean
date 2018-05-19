@@ -7,10 +7,10 @@ use App\Http\Requests\CreateContactRequest;
 use App\Http\Requests\UpdateContactRequest;
 use App\Models\Contact;
 use App\Ninja\Repositories\ContactRepository;
+use App\Services\ContactService;
 use Input;
 use Response;
 use Utils;
-use App\Services\ContactService;
 
 class ContactApiController extends BaseAPIController
 {
@@ -46,8 +46,8 @@ class ContactApiController extends BaseAPIController
     public function index()
     {
         $contacts = Contact::scope()
-                    ->withTrashed()
-                    ->orderBy('created_at', 'desc');
+            ->withTrashed()
+            ->orderBy('created_at', 'desc');
 
         return $this->listResponse($contacts);
     }

@@ -2,9 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Account;
 use App\Models\Activity;
-use App\Models\Client;
 use App\Models\Credit;
 use App\Models\Invoice;
 use App\Ninja\Datatables\PaymentDatatable;
@@ -21,7 +19,7 @@ class PaymentService extends BaseService
      *
      * @param PaymentRepository $paymentRepo
      * @param AccountRepository $accountRepo
-     * @param DatatableService  $datatableService
+     * @param DatatableService $datatableService
      */
     public function __construct(
         PaymentRepository $paymentRepo,
@@ -34,21 +32,13 @@ class PaymentService extends BaseService
     }
 
     /**
-     * @return PaymentRepository
-     */
-    protected function getRepo()
-    {
-        return $this->paymentRepo;
-    }
-
-    /**
      * @param Invoice $invoice
      *
      * @return bool
      */
     public function autoBillInvoice(Invoice $invoice)
     {
-        if (! $invoice->canBePaid()) {
+        if (!$invoice->canBePaid()) {
             return false;
         }
 
@@ -61,7 +51,7 @@ class PaymentService extends BaseService
         /** @var \App\Models\Invitation $invitation */
         $invitation = $invoice->invitations->first();
 
-        if (! $invitation) {
+        if (!$invitation) {
             return false;
         }
 
@@ -84,19 +74,19 @@ class PaymentService extends BaseService
 
         $paymentDriver = $account->paymentDriver($invitation, GATEWAY_TYPE_TOKEN);
 
-        if (! $paymentDriver) {
+        if (!$paymentDriver) {
             return false;
         }
 
         $customer = $paymentDriver->customer();
 
-        if (! $customer) {
+        if (!$customer) {
             return false;
         }
 
         $paymentMethod = $customer->default_payment_method;
 
-        if (! $paymentMethod) {
+        if (!$paymentMethod) {
             return false;
         }
 
@@ -141,7 +131,7 @@ class PaymentService extends BaseService
             $message = sprintf('%s: %s', ucwords($paymentDriver->providerName()), $exception->getMessage());
             //$message .= $exception->getTraceAsString();
             Utils::logError($message, 'PHP', true);
-            if (! Auth::check()) {
+            if (!Auth::check()) {
                 $mailer = app('App\Ninja\Mailers\UserMailer');
                 $mailer->sendMessage($invoice->user, $subject, $message, [
                     'invoice' => $invoice
@@ -160,7 +150,8 @@ class PaymentService extends BaseService
             $credit->client_id = $invoice->client_id;
             $credit->credit_date = date_create()->format('Y-m-d');
             $credit->amount = $credit->balance = $input['amount'] - $invoice->balance;
-            $credit->private_notes = trans('texts.credit_created_by', ['transaction_reference' => isset($input['transaction_reference']) ? $input['transaction_reference'] : '']);
+            $credit->private_notes = trans('texts.credit_created_by',
+                ['transaction_reference' => isset($input['transaction_reference']) ? $input['transaction_reference'] : '']);
             $credit->save();
             $input['amount'] = $invoice->balance;
         }
@@ -168,13 +159,12 @@ class PaymentService extends BaseService
         return $this->paymentRepo->save($input, $payment);
     }
 
-
     public function getDatatable($clientPublicId, $search)
     {
         $datatable = new PaymentDatatable(true, $clientPublicId);
         $query = $this->paymentRepo->find($clientPublicId, $search);
 
-        if (! Utils::hasPermission('view_all')) {
+        if (!Utils::hasPermission('view_all')) {
             $query->where('payments.user_id', '=', Auth::user()->id);
         }
 
@@ -184,7 +174,7 @@ class PaymentService extends BaseService
     public function bulk($ids, $action, $params = [])
     {
         if ($action == 'refund') {
-            if (! $ids) {
+            if (!$ids) {
                 return 0;
             }
 
@@ -193,8 +183,8 @@ class PaymentService extends BaseService
 
             foreach ($payments as $payment) {
                 if (Auth::user()->can('edit', $payment)) {
-                    $amount = ! empty($params['refund_amount']) ? floatval($params['refund_amount']) : null;
-                    $sendEmail = ! empty($params['refund_email']) ? boolval($params['refund_email']) : false;
+                    $amount = !empty($params['refund_amount']) ? floatval($params['refund_amount']) : null;
+                    $sendEmail = !empty($params['refund_email']) ? boolval($params['refund_email']) : false;
                     $paymentDriver = false;
                     $refunded = false;
 
@@ -224,5 +214,13 @@ class PaymentService extends BaseService
         } else {
             return parent::bulk($ids, $action);
         }
+    }
+
+    /**
+     * @return PaymentRepository
+     */
+    protected function getRepo()
+    {
+        return $this->paymentRepo;
     }
 }

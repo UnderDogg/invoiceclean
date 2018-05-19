@@ -4,15 +4,14 @@ namespace App\Ninja\Mailers;
 
 use App\Events\InvoiceWasEmailed;
 use App\Events\QuoteWasEmailed;
+use App\Jobs\ConvertInvoiceToUbl;
 use App\Models\Invoice;
-use App\Models\Proposal;
 use App\Models\Payment;
 use App\Services\TemplateService;
-use App\Jobs\ConvertInvoiceToUbl;
-use Event;
-use Utils;
 use Cache;
+use Event;
 use Mail;
+use Utils;
 
 class ContactMailer extends Mailer
 {
@@ -33,8 +32,8 @@ class ContactMailer extends Mailer
 
     /**
      * @param Invoice $invoice
-     * @param bool    $reminder
-     * @param bool    $pdfString
+     * @param bool $reminder
+     * @param bool $pdfString
      *
      * @return bool|null|string
      */
@@ -70,7 +69,7 @@ class ContactMailer extends Mailer
         $pdfString = false;
         $ublString = false;
 
-        if ($account->attachUBL() && ! $proposal) {
+        if ($account->attachUBL() && !$proposal) {
             $ublString = dispatch(new ConvertInvoiceToUbl($invoice));
         }
 
@@ -97,7 +96,7 @@ class ContactMailer extends Mailer
         $isFirst = true;
         $invitations = $proposal ? $proposal->invitations : $invoice->invitations;
         foreach ($invitations as $invitation) {
-            if ($account->attachPDF() && ! $proposal) {
+            if ($account->attachPDF() && !$proposal) {
                 $pdfString = $invoice->getPDFString($invitation);
             }
             $data = [
@@ -106,7 +105,8 @@ class ContactMailer extends Mailer
                 'ublString' => $ublString,
                 'proposal' => $proposal,
             ];
-            $response = $this->sendInvitation($invitation, $invoice, $emailTemplate, $emailSubject, $reminder, $isFirst, $data);
+            $response = $this->sendInvitation($invitation, $invoice, $emailTemplate, $emailSubject, $reminder, $isFirst,
+                $data);
             $isFirst = false;
             if ($response === true) {
                 $sent = true;
@@ -115,7 +115,7 @@ class ContactMailer extends Mailer
 
         $account->loadLocalizationSettings();
 
-        if ($sent === true && ! $proposal) {
+        if ($sent === true && !$proposal) {
             if ($invoice->isType(INVOICE_TYPE_QUOTE)) {
                 event(new QuoteWasEmailed($invoice, $reminder));
             } else {
@@ -128,7 +128,7 @@ class ContactMailer extends Mailer
 
     /**
      * @param Invitation $invitation
-     * @param Invoice    $invoice
+     * @param Invoice $invoice
      * @param $body
      * @param $subject
      * @param $pdfString
@@ -157,11 +157,11 @@ class ContactMailer extends Mailer
             $user = $account->users()->orderBy('id')->first();
         }
 
-        if (! $user->email || ! $user->registered) {
+        if (!$user->email || !$user->registered) {
             return trans('texts.email_error_user_unregistered');
-        } elseif (! $user->confirmed || $this->isThrottled($account)) {
+        } elseif (!$user->confirmed || $this->isThrottled($account)) {
             return trans('texts.email_error_user_unconfirmed');
-        } elseif (! $invitation->contact->email) {
+        } elseif (!$invitation->contact->email) {
             return trans('texts.email_error_invalid_contact_email');
         } elseif ($invitation->contact->trashed()) {
             return trans('texts.email_error_inactive_contact');
@@ -174,7 +174,7 @@ class ContactMailer extends Mailer
             'amount' => $invoice->getRequestedAmount(),
         ];
 
-        if (! $proposal) {
+        if (!$proposal) {
             // Let the client know they'll be billed later
             if ($client->autoBillLater()) {
                 $variables['autobill'] = $invoice->present()->autoBillEmailMessage();
@@ -205,7 +205,7 @@ class ContactMailer extends Mailer
             'tag' => $account->account_key,
         ];
 
-        if (! $proposal) {
+        if (!$proposal) {
             if ($account->attachPDF()) {
                 $data['pdfString'] = $extra['pdfString'];
                 $data['pdfFileName'] = $invoice->getFileName();
@@ -220,13 +220,58 @@ class ContactMailer extends Mailer
         $fromEmail = $account->getReplyToEmail() ?: $user->email;
         $view = $account->getTemplateView(ENTITY_INVOICE);
 
-        $response = $this->sendTo($invitation->contact->email, $fromEmail, $account->getDisplayName(), $subject, $view, $data);
+        $response = $this->sendTo($invitation->contact->email, $fromEmail, $account->getDisplayName(), $subject, $view,
+            $data);
 
         if ($response === true) {
             return true;
         } else {
             return $response;
         }
+    }
+
+    private function isThrottled($account)
+    {
+        if (Utils::isSelfHost()) {
+            return false;
+        }
+
+        $key = $account->company_id;
+
+        // http://stackoverflow.com/questions/1375501/how-do-i-throttle-my-sites-api-users
+        $day = 60 * 60 * 24;
+        $day_limit = $account->getDailyEmailLimit();
+        $day_throttle = Cache::get("email_day_throttle:{$key}", null);
+        $last_api_request = Cache::get("last_email_request:{$key}", 0);
+        $last_api_diff = time() - $last_api_request;
+
+        if (is_null($day_throttle)) {
+            $new_day_throttle = 0;
+        } else {
+            $new_day_throttle = $day_throttle - $last_api_diff;
+            $new_day_throttle = $new_day_throttle < 0 ? 0 : $new_day_throttle;
+            $new_day_throttle += $day / $day_limit;
+            $day_hits_remaining = floor(($day - $new_day_throttle) * $day_limit / $day);
+            $day_hits_remaining = $day_hits_remaining >= 0 ? $day_hits_remaining : 0;
+        }
+
+        Cache::put("email_day_throttle:{$key}", $new_day_throttle, 60);
+        Cache::put("last_email_request:{$key}", time(), 60);
+
+        if ($new_day_throttle > $day) {
+            $errorEmail = env('ERROR_EMAIL');
+            if ($errorEmail && !Cache::get("throttle_notified:{$key}")) {
+                Mail::raw('Account Throttle', function ($message) use ($errorEmail, $account) {
+                    $message->to($errorEmail)
+                        ->from(CONTACT_EMAIL)
+                        ->subject("Email throttle triggered for account " . $account->id);
+                });
+            }
+            Cache::put("throttle_notified:{$key}", true, 60 * 24);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -309,7 +354,7 @@ class ContactMailer extends Mailer
             'tag' => $account->account_key,
         ];
 
-        if (! $refunded && $account->attachPDF()) {
+        if (!$refunded && $account->attachPDF()) {
             $data['pdfString'] = $invoice->getPDFString();
             $data['pdfFileName'] = $invoice->getFileName();
         }
@@ -358,7 +403,7 @@ class ContactMailer extends Mailer
 
     public function sendPasswordReset($contact, $token)
     {
-        if (! $contact->email) {
+        if (!$contact->email) {
             return;
         }
 
@@ -369,49 +414,5 @@ class ContactMailer extends Mailer
         ];
 
         $this->sendTo($contact->email, CONTACT_EMAIL, CONTACT_NAME, $subject, $view, $data);
-    }
-
-    private function isThrottled($account)
-    {
-        if (Utils::isSelfHost()) {
-            return false;
-        }
-
-        $key = $account->company_id;
-
-        // http://stackoverflow.com/questions/1375501/how-do-i-throttle-my-sites-api-users
-        $day = 60 * 60 * 24;
-        $day_limit = $account->getDailyEmailLimit();
-        $day_throttle = Cache::get("email_day_throttle:{$key}", null);
-        $last_api_request = Cache::get("last_email_request:{$key}", 0);
-        $last_api_diff = time() - $last_api_request;
-
-        if (is_null($day_throttle)) {
-            $new_day_throttle = 0;
-        } else {
-            $new_day_throttle = $day_throttle - $last_api_diff;
-            $new_day_throttle = $new_day_throttle < 0 ? 0 : $new_day_throttle;
-            $new_day_throttle += $day / $day_limit;
-            $day_hits_remaining = floor(($day - $new_day_throttle) * $day_limit / $day);
-            $day_hits_remaining = $day_hits_remaining >= 0 ? $day_hits_remaining : 0;
-        }
-
-        Cache::put("email_day_throttle:{$key}", $new_day_throttle, 60);
-        Cache::put("last_email_request:{$key}", time(), 60);
-
-        if ($new_day_throttle > $day) {
-            $errorEmail = env('ERROR_EMAIL');
-            if ($errorEmail && ! Cache::get("throttle_notified:{$key}")) {
-                Mail::raw('Account Throttle', function ($message) use ($errorEmail, $account) {
-                    $message->to($errorEmail)
-                            ->from(CONTACT_EMAIL)
-                            ->subject("Email throttle triggered for account " . $account->id);
-                });
-            }
-            Cache::put("throttle_notified:{$key}", true, 60 * 24);
-            return true;
-        }
-
-        return false;
     }
 }

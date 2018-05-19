@@ -13,7 +13,6 @@ use App\Services\VendorService;
 use Auth;
 use Cache;
 use Input;
-use Redirect;
 use Session;
 use URL;
 use Utils;
@@ -102,7 +101,10 @@ class VendorController extends BaseController
     public function create(VendorRequest $request)
     {
         if (Vendor::scope()->count() > Auth::user()->getMaxNumVendors()) {
-            return View::make('error', ['hideHeader' => true, 'error' => "Sorry, you've exceeded the limit of ".Auth::user()->getMaxNumVendors().' vendors']);
+            return View::make('error', [
+                'hideHeader' => true,
+                'error' => "Sorry, you've exceeded the limit of " . Auth::user()->getMaxNumVendors() . ' vendors'
+            ]);
         }
 
         $data = [
@@ -115,6 +117,14 @@ class VendorController extends BaseController
         $data = array_merge($data, self::getViewModel());
 
         return View::make('vendors.edit', $data);
+    }
+
+    private static function getViewModel()
+    {
+        return [
+            'data' => Input::old('data'),
+            'account' => Auth::user()->account,
+        ];
     }
 
     /**
@@ -131,7 +141,7 @@ class VendorController extends BaseController
         $data = [
             'vendor' => $vendor,
             'method' => 'PUT',
-            'url' => 'vendors/'.$vendor->public_id,
+            'url' => 'vendors/' . $vendor->public_id,
             'title' => trans('texts.edit_vendor'),
         ];
 
@@ -144,14 +154,6 @@ class VendorController extends BaseController
         }
 
         return View::make('vendors.edit', $data);
-    }
-
-    private static function getViewModel()
-    {
-        return [
-            'data' => Input::old('data'),
-            'account' => Auth::user()->account,
-        ];
     }
 
     /**
@@ -176,7 +178,7 @@ class VendorController extends BaseController
         $ids = Input::get('public_id') ? Input::get('public_id') : Input::get('ids');
         $count = $this->vendorService->bulk($ids, $action);
 
-        $message = Utils::pluralize($action.'d_vendor', $count);
+        $message = Utils::pluralize($action . 'd_vendor', $count);
         Session::flash('message', $message);
 
         return $this->returnBulk($this->entityType, $action, $ids);

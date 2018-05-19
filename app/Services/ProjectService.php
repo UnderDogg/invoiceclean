@@ -25,20 +25,12 @@ class ProjectService extends BaseService
      * CreditService constructor.
      *
      * @param ProjectRepository $creditRepo
-     * @param DatatableService  $datatableService
+     * @param DatatableService $datatableService
      */
     public function __construct(ProjectRepository $projectRepo, DatatableService $datatableService)
     {
         $this->projectRepo = $projectRepo;
         $this->datatableService = $datatableService;
-    }
-
-    /**
-     * @return CreditRepository
-     */
-    protected function getRepo()
-    {
-        return $this->projectRepo;
     }
 
     /**
@@ -71,5 +63,13 @@ class ProjectService extends BaseService
         $query = $this->projectRepo->find($search, $userId);
 
         return $this->datatableService->createDatatable($datatable, $query);
+    }
+
+    /**
+     * @return CreditRepository
+     */
+    protected function getRepo()
+    {
+        return $this->projectRepo;
     }
 }

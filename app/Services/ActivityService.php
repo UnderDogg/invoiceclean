@@ -25,7 +25,7 @@ class ActivityService extends BaseService
      * ActivityService constructor.
      *
      * @param ActivityRepository $activityRepo
-     * @param DatatableService   $datatableService
+     * @param DatatableService $datatableService
      */
     public function __construct(ActivityRepository $activityRepo, DatatableService $datatableService)
     {

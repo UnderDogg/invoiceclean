@@ -12,14 +12,13 @@ class AccountGatewayToken extends Eloquent
 {
     use SoftDeletes;
     /**
-     * @var array
-     */
-    protected $dates = ['deleted_at'];
-    /**
      * @var bool
      */
     public $timestamps = true;
-
+    /**
+     * @var array
+     */
+    protected $dates = ['deleted_at'];
     /**
      * @var array
      */

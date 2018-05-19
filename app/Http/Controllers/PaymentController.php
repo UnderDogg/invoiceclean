@@ -6,9 +6,8 @@ use App\Http\Requests\CreatePaymentRequest;
 use App\Http\Requests\PaymentRequest;
 use App\Http\Requests\UpdatePaymentRequest;
 use App\Models\Client;
-use App\Models\Payment;
-use App\Models\Credit;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Ninja\Datatables\PaymentDatatable;
 use App\Ninja\Mailers\ContactMailer;
 use App\Ninja\Repositories\PaymentRepository;
@@ -47,8 +46,8 @@ class PaymentController extends BaseController
      * PaymentController constructor.
      *
      * @param PaymentRepository $paymentRepo
-     * @param ContactMailer     $contactMailer
-     * @param PaymentService    $paymentService
+     * @param ContactMailer $contactMailer
+     * @param PaymentService $paymentService
      */
     public function __construct(
         PaymentRepository $paymentRepo,
@@ -93,10 +92,10 @@ class PaymentController extends BaseController
         $account = $user->account;
 
         $invoices = Invoice::scope()
-                    ->invoices()
-                    ->where('invoices.invoice_status_id', '!=', INVOICE_STATUS_PAID)
-                    ->with('client', 'invoice_status')
-                    ->orderBy('invoice_number')->get();
+            ->invoices()
+            ->where('invoices.invoice_status_id', '!=', INVOICE_STATUS_PAID)
+            ->with('client', 'invoice_status')
+            ->orderBy('invoice_number')->get();
 
         $clientPublicId = Input::old('client') ? Input::old('client') : ($request->client_id ?: 0);
         $invoicePublicId = Input::old('invoice') ? Input::old('invoice') : ($request->invoice_id ?: 0);
@@ -150,19 +149,28 @@ class PaymentController extends BaseController
 
         $actions = [];
         if ($payment->invoiceJsonBackup()) {
-            $actions[] = ['url' => url("/invoices/invoice_history/{$payment->invoice->public_id}?payment_id={$payment->public_id}"), 'label' => trans('texts.view_invoice')];
+            $actions[] = [
+                'url' => url("/invoices/invoice_history/{$payment->invoice->public_id}?payment_id={$payment->public_id}"),
+                'label' => trans('texts.view_invoice')
+            ];
         }
 
-        $actions[] = ['url' => url("/invoices/{$payment->invoice->public_id}/edit"), 'label' => trans('texts.edit_invoice')];
+        $actions[] = [
+            'url' => url("/invoices/{$payment->invoice->public_id}/edit"),
+            'label' => trans('texts.edit_invoice')
+        ];
         $actions[] = DropdownButton::DIVIDER;
         $actions[] = ['url' => 'javascript:submitAction("email")', 'label' => trans('texts.email_payment')];
 
         if ($payment->canBeRefunded()) {
-            $actions[] = ['url' => "javascript:showRefundModal({$payment->public_id}, \"{$payment->getCompletedAmount()}\", \"{$payment->present()->completedAmount}\", \"{$payment->present()->currencySymbol}\")", 'label' => trans('texts.refund_payment')];
+            $actions[] = [
+                'url' => "javascript:showRefundModal({$payment->public_id}, \"{$payment->getCompletedAmount()}\", \"{$payment->present()->completedAmount}\", \"{$payment->present()->currencySymbol}\")",
+                'label' => trans('texts.refund_payment')
+            ];
         }
 
         $actions[] = DropdownButton::DIVIDER;
-        if (! $payment->trashed()) {
+        if (!$payment->trashed()) {
             $actions[] = ['url' => 'javascript:submitAction("archive")', 'label' => trans('texts.archive_payment')];
             $actions[] = ['url' => 'javascript:onDeleteClick()', 'label' => trans('texts.delete_payment')];
         } else {
@@ -174,14 +182,14 @@ class PaymentController extends BaseController
             'client' => null,
             'invoice' => null,
             'invoices' => Invoice::scope()
-                            ->invoices()
-                            ->whereIsPublic(true)
-                            ->with('client', 'invoice_status')
-                            ->orderBy('invoice_number')->get(),
+                ->invoices()
+                ->whereIsPublic(true)
+                ->with('client', 'invoice_status')
+                ->orderBy('invoice_number')->get(),
             'payment' => $payment,
             'entity' => $payment,
             'method' => 'PUT',
-            'url' => 'payments/'.$payment->public_id,
+            'url' => 'payments/' . $payment->public_id,
             'title' => trans('texts.edit_payment'),
             'actions' => $actions,
             'paymentTypes' => Cache::get('paymentTypes'),
@@ -213,7 +221,8 @@ class PaymentController extends BaseController
 
         if (Input::get('email_receipt')) {
             $this->contactMailer->sendPaymentConfirmation($payment);
-            Session::flash('message', trans($credit ? 'texts.created_payment_and_credit_emailed_client' : 'texts.created_payment_emailed_client'));
+            Session::flash('message',
+                trans($credit ? 'texts.created_payment_and_credit_emailed_client' : 'texts.created_payment_emailed_client'));
         } else {
             Session::flash('message', trans($credit ? 'texts.created_payment_and_credit' : 'texts.created_payment'));
         }
@@ -257,7 +266,7 @@ class PaymentController extends BaseController
                 'refund_email' => Input::get('refund_email'),
             ]);
             if ($count > 0) {
-                $message = Utils::pluralize($action == 'refund' ? 'refunded_payment' : $action.'d_payment', $count);
+                $message = Utils::pluralize($action == 'refund' ? 'refunded_payment' : $action . 'd_payment', $count);
                 Session::flash('message', $message);
             }
         }

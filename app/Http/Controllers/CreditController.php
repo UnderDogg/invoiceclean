@@ -77,7 +77,7 @@ class CreditController extends BaseController
             'clientPublicId' => $credit->client->public_id,
             'credit' => $credit,
             'method' => 'PUT',
-            'url' => 'credits/'.$publicId,
+            'url' => 'credits/' . $publicId,
             'title' => 'Edit Credit',
             'clients' => null,
         ];
@@ -104,11 +104,6 @@ class CreditController extends BaseController
         return $this->save($credit);
     }
 
-    public function store(CreateCreditRequest $request)
-    {
-        return $this->save();
-    }
-
     private function save($credit = null)
     {
         $credit = $this->creditService->save(Input::all(), $credit);
@@ -119,6 +114,11 @@ class CreditController extends BaseController
         return redirect()->to("clients/{$credit->client->public_id}#credits");
     }
 
+    public function store(CreateCreditRequest $request)
+    {
+        return $this->save();
+    }
+
     public function bulk()
     {
         $action = Input::get('action');
@@ -126,7 +126,7 @@ class CreditController extends BaseController
         $count = $this->creditService->bulk($ids, $action);
 
         if ($count > 0) {
-            $message = Utils::pluralize($action.'d_credit', $count);
+            $message = Utils::pluralize($action . 'd_credit', $count);
             Session::flash('message', $message);
         }
 

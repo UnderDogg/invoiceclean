@@ -25,16 +25,6 @@ class TaskPresenter extends EntityPresenter
         return $this->entity->user->getDisplayName();
     }
 
-    public function description()
-    {
-        return substr($this->entity->description, 0, 40) . (strlen($this->entity->description) > 40 ? '...' : '');
-    }
-
-    public function project()
-    {
-        return $this->entity->project ? $this->entity->project->name : '';
-    }
-
     /**
      * @param $account
      * @param mixed $showProject
@@ -58,7 +48,7 @@ class TaskPresenter extends EntityPresenter
 
         foreach ($parts as $part) {
             $start = $part[0];
-            if (count($part) == 1 || ! $part[1]) {
+            if (count($part) == 1 || !$part[1]) {
                 $end = time();
             } else {
                 $end = $part[1];
@@ -71,6 +61,11 @@ class TaskPresenter extends EntityPresenter
         }
 
         return $str . implode("\n", $times);
+    }
+
+    public function project()
+    {
+        return $this->entity->project ? $this->entity->project->name : '';
     }
 
     public function calendarEvent($subColors = false)
@@ -109,5 +104,10 @@ class TaskPresenter extends EntityPresenter
         }
 
         return $data;
+    }
+
+    public function description()
+    {
+        return substr($this->entity->description, 0, 40) . (strlen($this->entity->description) > 40 ? '...' : '');
     }
 }

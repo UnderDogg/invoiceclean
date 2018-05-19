@@ -23,21 +23,13 @@ class TokenService extends BaseService
     /**
      * TokenService constructor.
      *
-     * @param TokenRepository  $tokenRepo
+     * @param TokenRepository $tokenRepo
      * @param DatatableService $datatableService
      */
     public function __construct(TokenRepository $tokenRepo, DatatableService $datatableService)
     {
         $this->tokenRepo = $tokenRepo;
         $this->datatableService = $datatableService;
-    }
-
-    /**
-     * @return TokenRepository
-     */
-    protected function getRepo()
-    {
-        return $this->tokenRepo;
     }
 
     /**
@@ -51,5 +43,13 @@ class TokenService extends BaseService
         $query = $this->tokenRepo->find($userId);
 
         return $this->datatableService->createDatatable($datatable, $query);
+    }
+
+    /**
+     * @return TokenRepository
+     */
+    protected function getRepo()
+    {
+        return $this->tokenRepo;
     }
 }

@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\Schema;
 
 class AddRemember2faToken extends Migration
 {
@@ -96,7 +95,7 @@ class AddRemember2faToken extends Migration
             and invoices.is_recurring = 0
             and invoices.invoice_type_id = 2");
 
-        if (! Utils::isNinja()) {
+        if (!Utils::isNinja()) {
             Schema::table('activities', function ($table) {
                 $table->index('user_id');
             });

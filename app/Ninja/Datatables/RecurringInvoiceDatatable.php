@@ -2,10 +2,10 @@
 
 namespace App\Ninja\Datatables;
 
+use App\Models\Invoice;
 use Auth;
 use URL;
 use Utils;
-use App\Models\Invoice;
 
 class RecurringInvoiceDatatable extends EntityDatatable
 {
@@ -33,7 +33,7 @@ class RecurringInvoiceDatatable extends EntityDatatable
                 function ($model) {
                     return link_to("clients/{$model->client_public_id}", Utils::getClientDisplayName($model))->toHtml();
                 },
-                ! $this->hideClient,
+                !$this->hideClient,
             ],
             [
                 'start_date',
@@ -78,11 +78,13 @@ class RecurringInvoiceDatatable extends EntityDatatable
 
     private function getStatusLabel($model)
     {
-        $class = Invoice::calcStatusClass($model->invoice_status_id, $model->balance, $model->due_date_sql, $model->is_recurring);
-        $label = Invoice::calcStatusLabel($model->invoice_status_name, $class, $this->entityType, $model->quote_invoice_id);
+        $class = Invoice::calcStatusClass($model->invoice_status_id, $model->balance, $model->due_date_sql,
+            $model->is_recurring);
+        $label = Invoice::calcStatusLabel($model->invoice_status_name, $class, $this->entityType,
+            $model->quote_invoice_id);
 
         if ($model->invoice_status_id == INVOICE_STATUS_SENT) {
-            if (! $model->last_sent_date_sql || $model->last_sent_date_sql == '0000-00-00') {
+            if (!$model->last_sent_date_sql || $model->last_sent_date_sql == '0000-00-00') {
                 $label = trans('texts.pending');
             } else {
                 $label = trans('texts.active');

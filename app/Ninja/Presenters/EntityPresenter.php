@@ -3,12 +3,17 @@
 namespace App\Ninja\Presenters;
 
 use Laracasts\Presenter\Presenter;
+use stdClass;
 use URL;
 use Utils;
-use stdClass;
 
 class EntityPresenter extends Presenter
 {
+    public function editUrl()
+    {
+        return $this->url() . '/edit';
+    }
+
     /**
      * @return string
      */
@@ -25,16 +30,11 @@ class EntityPresenter extends Presenter
         return sprintf('/%s/%s', $type, $id);
     }
 
-    public function editUrl()
-    {
-        return $this->url() . '/edit';
-    }
-
     public function statusLabel($label = false)
     {
         $class = $text = '';
 
-        if (! $this->entity->id) {
+        if (!$this->entity->id) {
             return '';
         } elseif ($this->entity->is_deleted) {
             $class = 'danger';

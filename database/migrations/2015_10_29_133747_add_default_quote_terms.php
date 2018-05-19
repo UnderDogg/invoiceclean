@@ -16,8 +16,8 @@ class AddDefaultQuoteTerms extends Migration
         });
 
         $accounts = DB::table('accounts')
-                        ->orderBy('id')
-                        ->get(['id', 'invoice_terms']);
+            ->orderBy('id')
+            ->get(['id', 'invoice_terms']);
 
         foreach ($accounts as $account) {
             DB::table('accounts')

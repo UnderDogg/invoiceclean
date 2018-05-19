@@ -26,7 +26,7 @@ elixir.config.css.minifier.pluginOptions = {
  */
 var bowerDir = '../bower';
 
-elixir(function(mix) {
+elixir(function (mix) {
 
     /**
      * CSS configuration
@@ -60,7 +60,7 @@ elixir(function(mix) {
     ], 'public/css/built.css');
 
     mix.styles([
-       'login.css'
+        'login.css'
     ], 'public/css/built.login.css');
 
     mix.styles([

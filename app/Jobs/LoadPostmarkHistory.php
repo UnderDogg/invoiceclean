@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Jobs\Job;
 use Postmark\PostmarkClient;
 use stdClass;
 
@@ -31,7 +30,7 @@ class LoadPostmarkHistory extends Job
             $str .= $this->loadEmailEvents();
         }
 
-        if (! $str) {
+        if (!$str) {
             $str = trans('texts.no_messages_found');
         }
 
@@ -42,17 +41,19 @@ class LoadPostmarkHistory extends Job
         return $response;
     }
 
-    private function loadBounceEvents() {
+    private function loadBounceEvents()
+    {
         $str = '';
         $response = $this->postmark->getBounces(5, 0, null, null, $this->email, $this->account->account_key);
 
         foreach ($response['bounces'] as $bounce) {
-            if (! $bounce['inactive'] || ! $bounce['canactivate']) {
+            if (!$bounce['inactive'] || !$bounce['canactivate']) {
                 continue;
             }
 
             $str .= sprintf('<b>%s</b><br/>', $bounce['subject']);
-            $str .= sprintf('<span class="text-danger">%s</span> | %s<br/>', $bounce['type'], $this->account->getDateTime($bounce['bouncedat'], true));
+            $str .= sprintf('<span class="text-danger">%s</span> | %s<br/>', $bounce['type'],
+                $this->account->getDateTime($bounce['bouncedat'], true));
             $str .= sprintf('<span class="text-muted">%s %s</span><p/>', $bounce['description'], $bounce['details']);
 
             $this->bounceId = $bounce['id'];
@@ -61,7 +62,8 @@ class LoadPostmarkHistory extends Job
         return $str;
     }
 
-    private function loadEmailEvents() {
+    private function loadEmailEvents()
+    {
         $str = '';
         $response = $this->postmark->getOutboundMessages(5, 0, $this->email, null, $this->account->account_key);
 
@@ -71,7 +73,8 @@ class LoadPostmarkHistory extends Job
 
             if (count($details['messageevents'])) {
                 $event = $details['messageevents'][0];
-                $str .= sprintf('%s | %s<br/>', $event['Type'], $this->account->getDateTime($event['ReceivedAt'], true));
+                $str .= sprintf('%s | %s<br/>', $event['Type'],
+                    $this->account->getDateTime($event['ReceivedAt'], true));
                 if ($message = $event['Details']['DeliveryMessage']) {
                     $str .= sprintf('<span class="text-muted">%s</span><br/>', $message);
                 }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateProposalTemplateRequest;
 use App\Http\Requests\ProposalTemplateRequest;
 use App\Http\Requests\UpdateProposalTemplateRequest;
-use App\Models\Invoice;
 use App\Models\ProposalTemplate;
 use App\Ninja\Datatables\ProposalTemplateDatatable;
 use App\Ninja\Repositories\ProposalTemplateRepository;
@@ -21,8 +20,10 @@ class ProposalTemplateController extends BaseController
     protected $proposalTemplateService;
     protected $entityType = ENTITY_PROPOSAL_TEMPLATE;
 
-    public function __construct(ProposalTemplateRepository $proposalTemplateRepo, ProposalTemplateService $proposalTemplateService)
-    {
+    public function __construct(
+        ProposalTemplateRepository $proposalTemplateRepo,
+        ProposalTemplateService $proposalTemplateService
+    ) {
         $this->proposalTemplateRepo = $proposalTemplateRepo;
         $this->proposalTemplateService = $proposalTemplateService;
     }
@@ -71,13 +72,13 @@ class ProposalTemplateController extends BaseController
         $defaultLabel = trans('texts.default');
 
         foreach ($customTemplates as $template) {
-            if (! isset($options[$customLabel])) {
+            if (!isset($options[$customLabel])) {
                 $options[$customLabel] = [];
             }
             $options[trans('texts.custom')][$template->public_id] = $template->name;
         }
         foreach ($defaultTemplates as $template) {
-            if (! isset($options[$defaultLabel])) {
+            if (!isset($options[$defaultLabel])) {
                 $options[$defaultLabel] = [];
             }
             $options[trans('texts.default')][$template->public_id] = $template->name;
@@ -98,6 +99,11 @@ class ProposalTemplateController extends BaseController
         Session::reflash();
 
         return redirect("proposals/templates/$publicId/edit");
+    }
+
+    public function cloneProposal(ProposalTemplateRequest $request, $publicId)
+    {
+        return self::edit($request, $publicId, true);
     }
 
     public function edit(ProposalTemplateRequest $request, $publicId = false, $clone = false)
@@ -125,11 +131,6 @@ class ProposalTemplateController extends BaseController
         ]);
 
         return View::make('proposals/templates/edit', $data);
-    }
-
-    public function cloneProposal(ProposalTemplateRequest $request, $publicId)
-    {
-        return self::edit($request, $publicId, true);
     }
 
     public function store(CreateProposalTemplateRequest $request)

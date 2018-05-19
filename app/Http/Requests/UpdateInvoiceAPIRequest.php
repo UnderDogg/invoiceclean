@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Client;
-
 class UpdateInvoiceAPIRequest extends InvoiceRequest
 {
     /**
@@ -23,7 +21,7 @@ class UpdateInvoiceAPIRequest extends InvoiceRequest
      */
     public function rules()
     {
-        if (! $this->entity()) {
+        if (!$this->entity()) {
             return [];
         }
 

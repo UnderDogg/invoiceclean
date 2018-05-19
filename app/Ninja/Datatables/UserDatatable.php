@@ -14,7 +14,8 @@ class UserDatatable extends EntityDatatable
             [
                 'first_name',
                 function ($model) {
-                    return $model->public_id ? link_to('users/'.$model->public_id.'/edit', $model->first_name.' '.$model->last_name)->toHtml() : e($model->first_name.' '.$model->last_name);
+                    return $model->public_id ? link_to('users/' . $model->public_id . '/edit',
+                        $model->first_name . ' ' . $model->last_name)->toHtml() : e($model->first_name . ' ' . $model->last_name);
                 },
             ],
             [
@@ -26,7 +27,7 @@ class UserDatatable extends EntityDatatable
             [
                 'confirmed',
                 function ($model) {
-                    if (! $model->public_id) {
+                    if (!$model->public_id) {
                         return self::getStatusLabel(USER_STATE_OWNER);
                     } elseif ($model->deleted_at) {
                         return self::getStatusLabel(USER_STATE_DISABLED);
@@ -39,30 +40,6 @@ class UserDatatable extends EntityDatatable
                     } else {
                         return self::getStatusLabel(USER_STATE_PENDING);
                     }
-                },
-            ],
-        ];
-    }
-
-    public function actions()
-    {
-        return [
-            [
-                uctrans('texts.edit_user'),
-                function ($model) {
-                    return URL::to("users/{$model->public_id}/edit");
-                },
-                function ($model) {
-                    return $model->public_id;
-                },
-            ],
-            [
-                uctrans('texts.send_invite'),
-                function ($model) {
-                    return URL::to("send_confirmation/{$model->public_id}");
-                },
-                function ($model) {
-                    return $model->public_id && ! $model->confirmed;
                 },
             ],
         ];
@@ -91,5 +68,29 @@ class UserDatatable extends EntityDatatable
         }
 
         return "<h4><div class=\"label label-{$class}\">$label</div></h4>";
+    }
+
+    public function actions()
+    {
+        return [
+            [
+                uctrans('texts.edit_user'),
+                function ($model) {
+                    return URL::to("users/{$model->public_id}/edit");
+                },
+                function ($model) {
+                    return $model->public_id;
+                },
+            ],
+            [
+                uctrans('texts.send_invite'),
+                function ($model) {
+                    return URL::to("send_confirmation/{$model->public_id}");
+                },
+                function ($model) {
+                    return $model->public_id && !$model->confirmed;
+                },
+            ],
+        ];
     }
 }

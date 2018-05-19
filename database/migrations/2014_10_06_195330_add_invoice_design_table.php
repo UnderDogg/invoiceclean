@@ -261,10 +261,10 @@ class AddInvoiceDesignTable extends Migration
 			  var AmountX = headerLeft - (doc.getStringUnitWidth(AmountText) * doc.internal.getFontSize());
 			  SetPdfColor('SomeGreen', doc, 'secondary');
 			  doc.text(AmountX, y, AmountText);",
-            ]);
+        ]);
 
         DB::table('invoice_designs')->where('id', 3)->update([
-                'javascript' => "    var client = invoice.client;
+            'javascript' => "    var client = invoice.client;
 	    var account = invoice.account;
 	    var currencyId = client.currency_id;
 
@@ -489,7 +489,7 @@ class AddInvoiceDesignTable extends Migration
 		    doc.setFontType('normal');
 		    doc.text(layout.marginLeft, 790, 'Created by InvoiceNinja.com');
 		  }",
-          
+
         ]);
     }
 

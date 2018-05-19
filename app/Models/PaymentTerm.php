@@ -21,19 +21,6 @@ class PaymentTerm extends EntityModel
      */
     protected $dates = ['deleted_at'];
 
-    /**
-     * @return mixed
-     */
-    public function getEntityType()
-    {
-        return ENTITY_PAYMENT_TERM;
-    }
-
-    public function getNumDays()
-    {
-        return $this->num_days == -1 ? 0 : $this->num_days;
-    }
-
     public static function getSelectOptions()
     {
         $terms = PaymentTerm::whereAccountId(0)->get();
@@ -47,5 +34,18 @@ class PaymentTerm extends EntityModel
         }
 
         return $terms->sortBy('num_days');
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getEntityType()
+    {
+        return ENTITY_PAYMENT_TERM;
+    }
+
+    public function getNumDays()
+    {
+        return $this->num_days == -1 ? 0 : $this->num_days;
     }
 }

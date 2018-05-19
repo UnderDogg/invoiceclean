@@ -2,8 +2,8 @@
 
 namespace App\Ninja\Reports;
 
-use App\Models\Invoice;
 use App\Models\Expense;
+use App\Models\Invoice;
 use Barracuda\ArchiveStream\Archive;
 
 class DocumentReport extends AbstractReport
@@ -27,22 +27,22 @@ class DocumentReport extends AbstractReport
         $subgroup = $this->options['subgroup'];
         $records = false;
 
-        if (! $filter || $filter == ENTITY_INVOICE) {
+        if (!$filter || $filter == ENTITY_INVOICE) {
             $records = Invoice::scope()
-                            ->withArchived()
-                            ->with(['documents'])
-                            ->where('invoice_date', '>=', $this->startDate)
-                            ->where('invoice_date', '<=', $this->endDate)
-                            ->get();
+                ->withArchived()
+                ->with(['documents'])
+                ->where('invoice_date', '>=', $this->startDate)
+                ->where('invoice_date', '<=', $this->endDate)
+                ->get();
         }
 
-        if (! $filter || $filter == ENTITY_EXPENSE){
+        if (!$filter || $filter == ENTITY_EXPENSE) {
             $expenses = Expense::scope()
-                            ->withArchived()
-                            ->with(['documents'])
-                            ->where('expense_date', '>=', $this->startDate)
-                            ->where('expense_date', '<=', $this->endDate)
-                            ->get();
+                ->withArchived()
+                ->with(['documents'])
+                ->where('expense_date', '>=', $this->startDate)
+                ->where('expense_date', '<=', $this->endDate)
+                ->get();
 
             if ($records) {
                 $records = $records->merge($expenses);
@@ -52,14 +52,16 @@ class DocumentReport extends AbstractReport
         }
 
         if ($this->isExport && $exportFormat == 'zip') {
-            if (! extension_loaded('GMP')) {
+            if (!extension_loaded('GMP')) {
                 die(trans('texts.gmp_required'));
             }
 
-            $zip = Archive::instance_by_useragent(date('Y-m-d') . '_' . str_replace(' ', '_', trans('texts.documents')));
+            $zip = Archive::instance_by_useragent(date('Y-m-d') . '_' . str_replace(' ', '_',
+                    trans('texts.documents')));
             foreach ($records as $record) {
                 foreach ($record->documents as $document) {
-                    $name = sprintf('%s_%s_%s', $document->created_at->format('Y-m-d'), $record->present()->titledName, $document->name);
+                    $name = sprintf('%s_%s_%s', $document->created_at->format('Y-m-d'), $record->present()->titledName,
+                        $document->name);
                     $name = str_replace(' ', '_', $name);
                     $name = str_replace('#', '', $name);
                     $zip->add_file($name, $document->getRaw());
@@ -75,7 +77,8 @@ class DocumentReport extends AbstractReport
                 $this->data[] = [
                     $this->isExport ? $document->name : link_to($document->getUrl(), $document->name),
                     $record->client ? ($this->isExport ? $record->client->getDisplayName() : $record->client->present()->link) : '',
-                    $this->isExport ? $record->present()->titledName : ($filter ? $record->present()->link : link_to($record->present()->url, $record->present()->titledName)),
+                    $this->isExport ? $record->present()->titledName : ($filter ? $record->present()->link : link_to($record->present()->url,
+                        $record->present()->titledName)),
                     $date,
                 ];
 

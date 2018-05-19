@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateBankAccountRequest;
-use App\Models\Account;
 use App\Models\BankAccount;
 use App\Ninja\Repositories\BankAccountRepository;
 use App\Services\BankAccountService;

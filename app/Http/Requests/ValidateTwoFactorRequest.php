@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Cache;
 use Crypt;
 use Google2FA;
-use App\Models\User;
-use App\Http\Requests\Request;
 use Illuminate\Validation\Factory as ValidatonFactory;
 
 class ValidateTwoFactorRequest extends Request

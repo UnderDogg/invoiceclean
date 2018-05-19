@@ -28,7 +28,7 @@ class InvoiceDesignsSeeder extends Seeder
                 $pdfmake = file_get_contents($fileName);
                 if ($pdfmake) {
                     $record = InvoiceDesign::whereName($design)->first();
-                    if (! $record) {
+                    if (!$record) {
                         $record = new InvoiceDesign();
                         $record->id = $i + 1;
                         $record->name = $design;

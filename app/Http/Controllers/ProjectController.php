@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\GenerateProjectChartData;
 use App\Http\Requests\CreateProjectRequest;
 use App\Http\Requests\ProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Jobs\GenerateProjectChartData;
 use App\Models\Client;
 use App\Models\Project;
 use App\Ninja\Datatables\ProjectDatatable;
@@ -133,12 +133,15 @@ class ProjectController extends BaseController
             $lastClientId = false;
             $lastProjectId = false;
             $projects = Project::scope($ids)
-                ->with(['client', 'tasks' => function ($query) {
-                    $query->whereNull('invoice_id');
-                }])
+                ->with([
+                    'client',
+                    'tasks' => function ($query) {
+                        $query->whereNull('invoice_id');
+                    }
+                ])
                 ->get();
             foreach ($projects as $project) {
-                if (! $clientPublicId) {
+                if (!$clientPublicId) {
                     $clientPublicId = $project->client->public_id;
                 }
                 if ($lastClientId && $lastClientId != $project->client_id) {

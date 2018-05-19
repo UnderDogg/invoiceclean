@@ -245,7 +245,7 @@ class FontsSeeder extends Seeder
         ];
 
         foreach ($fonts as $font) {
-            if (! DB::table('fonts')->where('name', '=', $font['name'])->count()) {
+            if (!DB::table('fonts')->where('name', '=', $font['name'])->count()) {
                 Font::create($font);
             }
         }

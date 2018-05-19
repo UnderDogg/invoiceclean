@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ExpenseCategoryRequest;
 use App\Http\Requests\CreateExpenseCategoryRequest;
 use App\Http\Requests\UpdateExpenseCategoryRequest;
 use App\Models\ExpenseCategory;

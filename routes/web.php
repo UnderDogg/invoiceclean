@@ -25,7 +25,8 @@ Route::group(['middleware' => ['lookup:contact', 'auth:client']], function () {
     Route::get('payment/{invitation_key}/{gateway_type?}/{source_id?}', 'OnlinePaymentController@showPayment');
     Route::post('payment/{invitation_key}/{gateway_type?}', 'OnlinePaymentController@doPayment');
     Route::get('complete_source/{invitation_key}/{gateway_type}', 'OnlinePaymentController@completeSource');
-    Route::match(['GET', 'POST'], 'complete/{invitation_key?}/{gateway_type?}', 'OnlinePaymentController@offsitePayment');
+    Route::match(['GET', 'POST'], 'complete/{invitation_key?}/{gateway_type?}',
+        'OnlinePaymentController@offsitePayment');
     Route::get('bank/{routing_number}', 'OnlinePaymentController@getBankInfo');
     Route::get('client/payment_methods', 'ClientPortalController@paymentMethods');
     Route::get('client/statement/{client_id?}', 'ClientPortalController@statement');
@@ -49,13 +50,19 @@ Route::group(['middleware' => ['lookup:contact', 'auth:client']], function () {
     Route::get('client/{contact_key?}', 'ClientPortalController@dashboard');
 
     Route::get('api/client.quotes', ['as' => 'api.client.quotes', 'uses' => 'ClientPortalController@quoteDatatable']);
-    Route::get('api/client.credits', ['as' => 'api.client.credits', 'uses' => 'ClientPortalController@creditDatatable']);
-    Route::get('api/client.invoices', ['as' => 'api.client.invoices', 'uses' => 'ClientPortalController@invoiceDatatable']);
-    Route::get('api/client.recurring_invoices', ['as' => 'api.client.recurring_invoices', 'uses' => 'ClientPortalController@recurringInvoiceDatatable']);
-    Route::get('api/client.documents', ['as' => 'api.client.documents', 'uses' => 'ClientPortalController@documentDatatable']);
-    Route::get('api/client.payments', ['as' => 'api.client.payments', 'uses' => 'ClientPortalController@paymentDatatable']);
+    Route::get('api/client.credits',
+        ['as' => 'api.client.credits', 'uses' => 'ClientPortalController@creditDatatable']);
+    Route::get('api/client.invoices',
+        ['as' => 'api.client.invoices', 'uses' => 'ClientPortalController@invoiceDatatable']);
+    Route::get('api/client.recurring_invoices',
+        ['as' => 'api.client.recurring_invoices', 'uses' => 'ClientPortalController@recurringInvoiceDatatable']);
+    Route::get('api/client.documents',
+        ['as' => 'api.client.documents', 'uses' => 'ClientPortalController@documentDatatable']);
+    Route::get('api/client.payments',
+        ['as' => 'api.client.payments', 'uses' => 'ClientPortalController@paymentDatatable']);
     Route::get('api/client.tasks', ['as' => 'api.client.tasks', 'uses' => 'ClientPortalController@taskDatatable']);
-    Route::get('api/client.activity', ['as' => 'api.client.activity', 'uses' => 'ClientPortalController@activityDatatable']);
+    Route::get('api/client.activity',
+        ['as' => 'api.client.activity', 'uses' => 'ClientPortalController@activityDatatable']);
 });
 
 Route::group(['middleware' => 'lookup:license'], function () {
@@ -77,8 +84,10 @@ Route::group(['middleware' => 'lookup:account'], function () {
     Route::post('/payment_hook/{account_key}/{gateway_id}', 'OnlinePaymentController@handlePaymentWebhook');
     Route::match(['GET', 'POST', 'OPTIONS'], '/buy_now/{gateway_type?}', 'OnlinePaymentController@handleBuyNow');
     Route::get('validate_two_factor/{account_key}', 'Auth\LoginController@getValidateToken');
-    Route::post('validate_two_factor/{account_key}', ['middleware' => 'throttle:5', 'uses' => 'Auth\LoginController@postValidateToken']);
-    Route::get('.well-known/apple-developer-merchantid-domain-association', 'OnlinePaymentController@showAppleMerchantId');
+    Route::post('validate_two_factor/{account_key}',
+        ['middleware' => 'throttle:5', 'uses' => 'Auth\LoginController@postValidateToken']);
+    Route::get('.well-known/apple-developer-merchantid-domain-association',
+        'OnlinePaymentController@showAppleMerchantId');
 });
 
 //Route::post('/hook/bot/{platform?}', 'BotController@handleMessage');
@@ -101,14 +110,18 @@ Route::group(['middleware' => ['lookup:user']], function () {
 Route::get('/client/login', ['as' => 'login', 'uses' => 'ClientAuth\LoginController@showLoginForm']);
 Route::get('/client/logout', ['as' => 'logout', 'uses' => 'ClientAuth\LoginController@getLogoutWrapper']);
 Route::get('/client/session_expired', ['as' => 'logout', 'uses' => 'ClientAuth\LoginController@getSessionExpired']);
-Route::get('/client/recover_password', ['as' => 'forgot', 'uses' => 'ClientAuth\ForgotPasswordController@showLinkRequestForm']);
-Route::get('/client/password/reset/{token}', ['as' => 'forgot', 'uses' => 'ClientAuth\ResetPasswordController@showResetForm']);
+Route::get('/client/recover_password',
+    ['as' => 'forgot', 'uses' => 'ClientAuth\ForgotPasswordController@showLinkRequestForm']);
+Route::get('/client/password/reset/{token}',
+    ['as' => 'forgot', 'uses' => 'ClientAuth\ResetPasswordController@showResetForm']);
 
 Route::group(['middleware' => ['lookup:contact']], function () {
     Route::post('/client/login', ['as' => 'login', 'uses' => 'ClientAuth\LoginController@login']);
-    Route::post('/client/recover_password', ['as' => 'forgot', 'uses' => 'ClientAuth\ForgotPasswordController@sendResetLinkEmail']);
+    Route::post('/client/recover_password',
+        ['as' => 'forgot', 'uses' => 'ClientAuth\ForgotPasswordController@sendResetLinkEmail']);
     Route::post('/client/password/reset', ['as' => 'forgot', 'uses' => 'ClientAuth\ResetPasswordController@reset']);
-    Route::get('/proposal/image/{account_key}/{document_key}/{filename?}', 'ClientPortalProposalController@getProposalImage');
+    Route::get('/proposal/image/{account_key}/{document_key}/{filename?}',
+        'ClientPortalProposalController@getProposalImage');
 });
 
 if (Utils::isSelfHost()) {
@@ -126,7 +139,8 @@ if (Utils::isTravis()) {
 Route::group(['middleware' => ['lookup:user', 'auth:user']], function () {
     Route::get('logged_in', 'HomeController@loggedIn');
     Route::get('dashboard', 'DashboardController@index');
-    Route::get('dashboard_chart_data/{group_by}/{start_date}/{end_date}/{currency_id}/{include_expenses}', 'DashboardController@chartData');
+    Route::get('dashboard_chart_data/{group_by}/{start_date}/{end_date}/{currency_id}/{include_expenses}',
+        'DashboardController@chartData');
     Route::get('set_entity_filter/{entity_type}/{filter?}', 'AccountController@setEntityFilter');
     Route::get('hide_message', 'HomeController@hideMessage');
     Route::get('force_inline_pdf', 'UserController@forcePDFJS');
@@ -194,7 +208,8 @@ Route::group(['middleware' => ['lookup:user', 'auth:user']], function () {
 
     Route::get('recurring_expenses', 'RecurringExpenseController@index');
     Route::get('api/recurring_expenses', 'RecurringExpenseController@getDatatable');
-    Route::get('recurring_expenses/create/{vendor_id?}/{client_id?}/{category_id?}', 'RecurringExpenseController@create');
+    Route::get('recurring_expenses/create/{vendor_id?}/{client_id?}/{category_id?}',
+        'RecurringExpenseController@create');
     Route::post('recurring_expenses', 'RecurringExpenseController@store');
     Route::put('recurring_expenses/{recurring_expenses}', 'RecurringExpenseController@update');
     Route::get('recurring_expenses/{recurring_expenses}/edit', 'RecurringExpenseController@edit');

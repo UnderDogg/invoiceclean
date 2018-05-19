@@ -25,12 +25,12 @@ class ProfitAndLossReport extends AbstractReport
         $subgroup = $this->options['subgroup'];
 
         $payments = Payment::scope()
-                        ->orderBy('payment_date', 'desc')
-                        ->with('client.contacts', 'invoice', 'user')
-                        ->withArchived()
-                        ->excludeFailed()
-                        ->where('payment_date', '>=', $this->startDate)
-                        ->where('payment_date', '<=', $this->endDate);
+            ->orderBy('payment_date', 'desc')
+            ->with('client.contacts', 'invoice', 'user')
+            ->withArchived()
+            ->excludeFailed()
+            ->where('payment_date', '>=', $this->startDate)
+            ->where('payment_date', '<=', $this->endDate);
 
         foreach ($payments->get() as $payment) {
             $client = $payment->client;
@@ -46,9 +46,11 @@ class ProfitAndLossReport extends AbstractReport
                 $payment->present()->method,
             ];
 
-            $this->addToTotals($client->currency_id, 'revenue', $payment->getCompletedAmount(), $payment->present()->month);
+            $this->addToTotals($client->currency_id, 'revenue', $payment->getCompletedAmount(),
+                $payment->present()->month);
             $this->addToTotals($client->currency_id, 'expenses', 0, $payment->present()->month);
-            $this->addToTotals($client->currency_id, 'profit', $payment->getCompletedAmount(), $payment->present()->month);
+            $this->addToTotals($client->currency_id, 'profit', $payment->getCompletedAmount(),
+                $payment->present()->month);
 
             if ($subgroup == 'type') {
                 $dimension = trans('texts.payment');
@@ -59,11 +61,11 @@ class ProfitAndLossReport extends AbstractReport
         }
 
         $expenses = Expense::scope()
-                        ->orderBy('expense_date', 'desc')
-                        ->with('client.contacts')
-                        ->withArchived()
-                        ->where('expense_date', '>=', $this->startDate)
-                        ->where('expense_date', '<=', $this->endDate);
+            ->orderBy('expense_date', 'desc')
+            ->with('client.contacts')
+            ->withArchived()
+            ->where('expense_date', '>=', $this->startDate)
+            ->where('expense_date', '<=', $this->endDate);
 
         foreach ($expenses->get() as $expense) {
             $client = $expense->client;
@@ -76,8 +78,10 @@ class ProfitAndLossReport extends AbstractReport
             ];
 
             $this->addToTotals($expense->expense_currency_id, 'revenue', 0, $expense->present()->month);
-            $this->addToTotals($expense->expense_currency_id, 'expenses', $expense->amountWithTax(), $expense->present()->month);
-            $this->addToTotals($expense->expense_currency_id, 'profit', $expense->amountWithTax() * -1, $expense->present()->month);
+            $this->addToTotals($expense->expense_currency_id, 'expenses', $expense->amountWithTax(),
+                $expense->present()->month);
+            $this->addToTotals($expense->expense_currency_id, 'profit', $expense->amountWithTax() * -1,
+                $expense->present()->month);
 
             if ($subgroup == 'type') {
                 $dimension = trans('texts.expense');

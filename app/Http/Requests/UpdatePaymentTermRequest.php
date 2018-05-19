@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Invoice;
-
 class UpdatePaymentTermRequest extends PaymentTermRequest
 {
     /**
@@ -25,7 +23,7 @@ class UpdatePaymentTermRequest extends PaymentTermRequest
 
     public function rules()
     {
-        if (! $this->entity()) {
+        if (!$this->entity()) {
             return [];
         }
 

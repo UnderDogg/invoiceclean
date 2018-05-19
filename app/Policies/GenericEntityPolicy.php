@@ -31,6 +31,19 @@ class GenericEntityPolicy
         return false;
     }
 
+    private static function className($entityType)
+    {
+        if (!Utils::isNinjaProd()) {
+            if ($module = \Module::find($entityType)) {
+                return "Modules\\{$module->getName()}\\Policies\\{$module->getName()}Policy";
+            }
+        }
+
+        $studly = Str::studly($entityType);
+
+        return "App\\Policies\\{$studly}Policy";
+    }
+
     /**
      * @param User $user
      * @param $entityTypee
@@ -79,18 +92,5 @@ class GenericEntityPolicy
         }
 
         return false;
-    }
-
-    private static function className($entityType)
-    {
-        if (! Utils::isNinjaProd()) {
-            if ($module = \Module::find($entityType)) {
-                return "Modules\\{$module->getName()}\\Policies\\{$module->getName()}Policy";
-            }
-        }
-
-        $studly = Str::studly($entityType);
-
-        return "App\\Policies\\{$studly}Policy";
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\TaxRateRequest;
 use App\Http\Requests\CreateTaxRateRequest;
+use App\Http\Requests\TaxRateRequest;
 use App\Http\Requests\UpdateTaxRateRequest;
 use App\Models\TaxRate;
 use App\Ninja\Repositories\TaxRateRepository;
@@ -52,8 +52,8 @@ class TaxRateApiController extends BaseAPIController
     public function index()
     {
         $taxRates = TaxRate::scope()
-                        ->withTrashed()
-                        ->orderBy('created_at', 'desc');
+            ->withTrashed()
+            ->orderBy('created_at', 'desc');
 
         return $this->listResponse($taxRates);
     }

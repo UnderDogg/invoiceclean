@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Client;
-
 class CreateInvoiceAPIRequest extends InvoiceRequest
 {
     /**

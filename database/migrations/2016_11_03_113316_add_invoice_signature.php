@@ -11,7 +11,7 @@ class AddInvoiceSignature extends Migration
      */
     public function up()
     {
-        if (! Schema::hasColumn('invitations', 'signature_base64')) {
+        if (!Schema::hasColumn('invitations', 'signature_base64')) {
             Schema::table('invitations', function ($table) {
                 $table->text('signature_base64')->nullable();
                 $table->timestamp('signature_date')->nullable();

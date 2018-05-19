@@ -21,8 +21,10 @@ class ProposalCategoryController extends BaseController
     protected $proposalCategoryService;
     protected $entityType = ENTITY_PROPOSAL_CATEGORY;
 
-    public function __construct(ProposalCategoryRepository $proposalCategoryRepo, ProposalCategoryService $proposalCategoryService)
-    {
+    public function __construct(
+        ProposalCategoryRepository $proposalCategoryRepo,
+        ProposalCategoryService $proposalCategoryService
+    ) {
         $this->proposalCategoryRepo = $proposalCategoryRepo;
         $this->proposalCategoryService = $proposalCategoryService;
     }

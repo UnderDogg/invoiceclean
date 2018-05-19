@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ExpenseRequest;
 use App\Http\Requests\CreateExpenseRequest;
+use App\Http\Requests\ExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
 use App\Models\Expense;
 use App\Ninja\Repositories\ExpenseRepository;

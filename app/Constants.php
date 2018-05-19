@@ -1,6 +1,6 @@
 <?php
 
-if (! defined('APP_NAME')) {
+if (!defined('APP_NAME')) {
     define('APP_NAME', env('APP_NAME', 'Invoice Ninja'));
     define('APP_DOMAIN', env('APP_DOMAIN', 'invoiceninja.com'));
     define('CONTACT_EMAIL', env('MAIL_FROM_ADDRESS'));
@@ -584,7 +584,8 @@ if (! defined('APP_NAME')) {
     define('WEPAY_CLIENT_SECRET', env('WEPAY_CLIENT_SECRET'));
     define('WEPAY_AUTO_UPDATE', env('WEPAY_AUTO_UPDATE', false));
     define('WEPAY_ENVIRONMENT', env('WEPAY_ENVIRONMENT', WEPAY_PRODUCTION));
-    define('WEPAY_THEME', env('WEPAY_THEME', '{"name":"Invoice Ninja","primary_color":"0b4d78","secondary_color":"0b4d78","background_color":"f8f8f8","button_color":"33b753"}'));
+    define('WEPAY_THEME', env('WEPAY_THEME',
+        '{"name":"Invoice Ninja","primary_color":"0b4d78","secondary_color":"0b4d78","background_color":"f8f8f8","button_color":"33b753"}'));
 
     define('SKYPE_CARD_RECEIPT', 'message/card.receipt');
     define('SKYPE_CARD_CAROUSEL', 'message/card.carousel');
@@ -612,12 +613,12 @@ if (! defined('APP_NAME')) {
     define('INVOICE_FIELDS_TASK', 'task_fields');
 
     $creditCards = [
-                1 => ['card' => 'images/credit_cards/Test-Visa-Icon.png', 'text' => 'Visa'],
-                2 => ['card' => 'images/credit_cards/Test-MasterCard-Icon.png', 'text' => 'Master Card'],
-                4 => ['card' => 'images/credit_cards/Test-AmericanExpress-Icon.png', 'text' => 'American Express'],
-                8 => ['card' => 'images/credit_cards/Test-Diners-Icon.png', 'text' => 'Diners'],
-                16 => ['card' => 'images/credit_cards/Test-Discover-Icon.png', 'text' => 'Discover'],
-            ];
+        1 => ['card' => 'images/credit_cards/Test-Visa-Icon.png', 'text' => 'Visa'],
+        2 => ['card' => 'images/credit_cards/Test-MasterCard-Icon.png', 'text' => 'Master Card'],
+        4 => ['card' => 'images/credit_cards/Test-AmericanExpress-Icon.png', 'text' => 'American Express'],
+        8 => ['card' => 'images/credit_cards/Test-Diners-Icon.png', 'text' => 'Diners'],
+        16 => ['card' => 'images/credit_cards/Test-Discover-Icon.png', 'text' => 'Discover'],
+    ];
     define('CREDIT_CARDS', serialize($creditCards));
 
     $cachedTables = [
@@ -677,12 +678,12 @@ if (! defined('APP_NAME')) {
     // include modules in translations
     function mtrans($entityType, $text = false)
     {
-        if (! $text) {
+        if (!$text) {
             $text = $entityType;
         }
 
         // check if this has been translated in a module language file
-        if (! Utils::isNinjaProd() && $module = Module::find($entityType)) {
+        if (!Utils::isNinjaProd() && $module = Module::find($entityType)) {
             $key = "{$module->getLowerName()}::texts.{$text}";
             $value = trans($key);
             if ($key != $value) {

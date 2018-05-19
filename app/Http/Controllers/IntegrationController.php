@@ -20,7 +20,7 @@ class IntegrationController extends BaseAPIController
     {
         $eventId = Utils::lookupEventId(trim(Input::get('event')));
 
-        if (! $eventId) {
+        if (!$eventId) {
             return Response::json('Event is invalid', 500);
         }
 
@@ -29,7 +29,7 @@ class IntegrationController extends BaseAPIController
         $subscription->target_url = trim(Input::get('target_url'));
         $subscription->save();
 
-        if (! $subscription->id) {
+        if (!$subscription->id) {
             return Response::json('Failed to create subscription', 500);
         }
 

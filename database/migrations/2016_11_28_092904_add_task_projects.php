@@ -67,12 +67,12 @@ class AddTaskProjects extends Migration
             $table->foreign('default_payment_method_id')->references('id')->on('payment_methods')->onDelete('cascade');
         });
 
-        if (! Schema::hasColumn('invoices', 'is_public')) {
+        if (!Schema::hasColumn('invoices', 'is_public')) {
             Schema::table('invoices', function ($table) {
                 $table->boolean('is_public')->default(false);
             });
         }
-        
+
         DB::table('invoices')->update(['is_public' => true]);
     }
 

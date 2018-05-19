@@ -41,13 +41,13 @@ class ExportController extends BaseController
         } else {
             $fields = $request->all();
             $fields = array_filter(array_map(function ($key) {
-                if (! in_array($key, ['format', 'include', '_token'])) {
+                if (!in_array($key, ['format', 'include', '_token'])) {
                     return $key;
                 } else {
                     return null;
                 }
             }, array_keys($fields), $fields));
-            $fileName = $date. '-invoiceninja-' . implode('-', $fields);
+            $fileName = $date . '-invoiceninja-' . implode('-', $fields);
         }
 
         if ($format === 'JSON') {
@@ -76,20 +76,28 @@ class ExportController extends BaseController
 
         // eager load data, include archived but exclude deleted
         $account = Auth::user()->account;
-        $account->load(['clients' => function ($query) {
-            $query->withArchived()
-                  ->with(['contacts', 'invoices' => function ($query) {
-                      $query->withArchived()
-                            ->with(['invoice_items', 'payments' => function ($query) {
-                                $query->withArchived();
-                            }]);
-                  }]);
-        }]);
+        $account->load([
+            'clients' => function ($query) {
+                $query->withArchived()
+                    ->with([
+                        'contacts',
+                        'invoices' => function ($query) {
+                            $query->withArchived()
+                                ->with([
+                                    'invoice_items',
+                                    'payments' => function ($query) {
+                                        $query->withArchived();
+                                    }
+                                ]);
+                        }
+                    ]);
+            }
+        ]);
 
         $resource = new Item($account, new AccountTransformer());
         $data = $manager->parseIncludes('clients.invoices.payments')
-                    ->createData($resource)
-                    ->toArray();
+            ->createData($resource)
+            ->toArray();
 
         return response()->json($data);
     }
@@ -109,48 +117,6 @@ class ExportController extends BaseController
                 $sheet->loadView('export', $data);
             });
         })->download('csv');
-    }
-
-    /**
-     * @param $request
-     * @param $fileName
-     *
-     * @return mixed
-     */
-    private function returnXLS($request, $fileName)
-    {
-        $user = Auth::user();
-        $data = $this->getData($request);
-
-        return Excel::create($fileName, function ($excel) use ($user, $data) {
-            $excel->setTitle($data['title'])
-                  ->setCreator($user->getDisplayName())
-                  ->setLastModifiedBy($user->getDisplayName())
-                  ->setDescription('')
-                  ->setSubject('')
-                  ->setKeywords('')
-                  ->setCategory('')
-                  ->setManager('')
-                  ->setCompany($user->account->getDisplayName());
-
-            foreach ($data as $key => $val) {
-                if ($key === 'account' || $key === 'title' || $key === 'multiUser') {
-                    continue;
-                }
-                if ($key === 'recurringInvoices') {
-                    $key = 'recurring_invoices';
-                }
-                $label = trans("texts.{$key}");
-                $excel->sheet($label, function ($sheet) use ($key, $data) {
-                    if ($key === 'quotes') {
-                        $key = 'invoices';
-                        $data['entityType'] = ENTITY_QUOTE;
-                        $data['invoices'] = $data['quotes'];
-                    }
-                    $sheet->loadView("export.{$key}", $data);
-                });
-            }
-        })->download('xls');
     }
 
     /**
@@ -257,5 +223,47 @@ class ExportController extends BaseController
         }
 
         return $data;
+    }
+
+    /**
+     * @param $request
+     * @param $fileName
+     *
+     * @return mixed
+     */
+    private function returnXLS($request, $fileName)
+    {
+        $user = Auth::user();
+        $data = $this->getData($request);
+
+        return Excel::create($fileName, function ($excel) use ($user, $data) {
+            $excel->setTitle($data['title'])
+                ->setCreator($user->getDisplayName())
+                ->setLastModifiedBy($user->getDisplayName())
+                ->setDescription('')
+                ->setSubject('')
+                ->setKeywords('')
+                ->setCategory('')
+                ->setManager('')
+                ->setCompany($user->account->getDisplayName());
+
+            foreach ($data as $key => $val) {
+                if ($key === 'account' || $key === 'title' || $key === 'multiUser') {
+                    continue;
+                }
+                if ($key === 'recurringInvoices') {
+                    $key = 'recurring_invoices';
+                }
+                $label = trans("texts.{$key}");
+                $excel->sheet($label, function ($sheet) use ($key, $data) {
+                    if ($key === 'quotes') {
+                        $key = 'invoices';
+                        $data['entityType'] = ENTITY_QUOTE;
+                        $data['invoices'] = $data['quotes'];
+                    }
+                    $sheet->loadView("export.{$key}", $data);
+                });
+            }
+        })->download('xls');
     }
 }

@@ -1,30 +1,4 @@
 <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">{{ trans('texts.application_settings') }}</h3>
-      </div>
-      <div class="panel-body form-padding-right">
-        {!! Former::text('app[url]')->label(trans('texts.url'))->value(isset($_ENV['APP_URL']) ? $_ENV['APP_URL'] : Request::root()) !!}
-        {!! Former::checkbox('https')->text(trans('texts.require'))->check(env('REQUIRE_HTTPS'))->value(1) !!}
-        {!! Former::checkbox('debug')->text(trans('texts.enable'))->check(config('app.debug'))->value(1) !!}
-
-      </div>
-    </div>
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">{{ trans('texts.database_connection') }}</h3>
-      </div>
-      <div class="panel-body form-padding-right">
-        {{--- Former::select('database[default]')->label('driver')->options(['mysql' => 'MySQL', 'pgsql' => 'PostgreSQL', 'sqlite' => 'SQLite'])
-                ->value(isset($_ENV['DB_TYPE']) ? $_ENV['DB_TYPE'] : 'mysql') ---}}
-        {!! Former::plaintext('driver')->value('MySQL') !!}
-        {!! Former::text('database[type][host]')->label('host')->value(isset($_ENV['DB_HOST']) ? $_ENV['DB_HOST'] : 'localhost') !!}
-        {!! Former::text('database[type][database]')->label('database')->value(isset($_ENV['DB_DATABASE']) ? $_ENV['DB_DATABASE'] : 'ninja') !!}
-        {!! Former::text('database[type][username]')->label('username')->value(isset($_ENV['DB_USERNAME']) ? $_ENV['DB_USERNAME'] : 'ninja') !!}
-        {!! Former::password('database[type][password]')->label('password')->value(isset($_ENV['DB_PASSWORD']) ? $_ENV['DB_PASSWORD'] : 'ninja') !!}
-        {!! Former::actions( Button::primary(trans('texts.test_connection'))->small()->withAttributes(['onclick' => 'testDatabase()']), '&nbsp;&nbsp;<span id="dbTestResult"/>' ) !!}
-      </div>
-    </div>
 
     @if (!isset($_ENV['POSTMARK_API_TOKEN']))
         <div class="panel panel-default">

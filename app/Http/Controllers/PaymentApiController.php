@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PaymentRequest;
 use App\Http\Requests\CreatePaymentAPIRequest;
+use App\Http\Requests\PaymentRequest;
 use App\Http\Requests\UpdatePaymentRequest;
-use App\Models\Invoice;
 use App\Models\Payment;
 use App\Ninja\Mailers\ContactMailer;
 use App\Ninja\Repositories\PaymentRepository;
@@ -20,8 +19,11 @@ class PaymentApiController extends BaseAPIController
 
     protected $entityType = ENTITY_PAYMENT;
 
-    public function __construct(PaymentRepository $paymentRepo, PaymentService $paymentService, ContactMailer $contactMailer)
-    {
+    public function __construct(
+        PaymentRepository $paymentRepo,
+        PaymentService $paymentService,
+        ContactMailer $contactMailer
+    ) {
         parent::__construct();
 
         $this->paymentRepo = $paymentRepo;
@@ -49,9 +51,9 @@ class PaymentApiController extends BaseAPIController
     public function index()
     {
         $payments = Payment::scope()
-                        ->withTrashed()
-                        ->with(['invoice'])
-                        ->orderBy('created_at', 'desc');
+            ->withTrashed()
+            ->with(['invoice'])
+            ->orderBy('created_at', 'desc');
 
         return $this->listResponse($payments);
     }

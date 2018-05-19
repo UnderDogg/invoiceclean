@@ -26,14 +26,6 @@ class ContactService extends BaseService
     }
 
     /**
-     * @return ContactRepository
-     */
-    protected function getRepo()
-    {
-        return $this->contactRepo;
-    }
-
-    /**
      * @param $data
      * @param null $contact
      *
@@ -46,6 +38,14 @@ class ContactService extends BaseService
         }
 
         return $this->contactRepo->save($data, $contact);
+    }
+
+    /**
+     * @return ContactRepository
+     */
+    protected function getRepo()
+    {
+        return $this->contactRepo;
     }
 
 }

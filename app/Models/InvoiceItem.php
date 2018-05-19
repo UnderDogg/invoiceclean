@@ -22,15 +22,6 @@ class InvoiceItem extends EntityModel
      * @var array
      */
     protected $dates = ['deleted_at'];
-
-    /**
-     * @return mixed
-     */
-    public function getEntityType()
-    {
-        return ENTITY_INVOICE_ITEM;
-    }
-
     /**
      * @var array
      */
@@ -42,6 +33,14 @@ class InvoiceItem extends EntityModel
         'invoice_item_type_id',
         'discount',
     ];
+
+    /**
+     * @return mixed
+     */
+    public function getEntityType()
+    {
+        return ENTITY_INVOICE_ITEM;
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -75,6 +74,11 @@ class InvoiceItem extends EntityModel
         return $this->belongsTo('App\Models\Account');
     }
 
+    public function amount()
+    {
+        return $this->getPreTaxAmount() + $this->getTaxAmount();
+    }
+
     public function getPreTaxAmount()
     {
         $amount = $this->cost * $this->qty;
@@ -104,11 +108,6 @@ class InvoiceItem extends EntityModel
         }
 
         return $tax;
-    }
-
-    public function amount()
-    {
-        return $this->getPreTaxAmount() + $this->getTaxAmount();
     }
 
     public function markFeePaid()

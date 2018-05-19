@@ -2,8 +2,8 @@
 <html lang="{{App::getLocale()}}">
 <head>
     <!-- Source: https://github.com/invoiceninja/invoiceninja -->
-    <!-- Version: {{ NINJA_VERSION }} -->
-    @if (env('MULTI_DB_ENABLED'))
+<!-- Version: {{ NINJA_VERSION }} -->
+@if (env('MULTI_DB_ENABLED'))
     <!-- Authenticated: {{ Auth::check() ? 'Yes' : 'No' }} -->
     <!-- Server: {{ session(SESSION_DB_SERVER, 'Unset') }} -->
     @endif
@@ -35,7 +35,7 @@
         <meta name="theme-color" content="#ffffff">
     @endif
 
-    <!-- http://stackoverflow.com/questions/19012698/browser-cache-issues-in-laravel-4-application -->
+<!-- http://stackoverflow.com/questions/19012698/browser-cache-issues-in-laravel-4-application -->
     <meta http-equiv="cache-control" content="max-age=0"/>
     <meta http-equiv="cache-control" content="no-cache"/>
     <meta http-equiv="cache-control" content="no-store"/>
@@ -74,12 +74,12 @@
                 return;
             }
             @if (Utils::isTravis())
-                if (errorMsg.indexOf('Attempting to change value of a readonly property') > -1) {
-                    return;
-                }
+            if (errorMsg.indexOf('Attempting to change value of a readonly property') > -1) {
+                return;
+            }
             @endif
             // Less than IE9 https://stackoverflow.com/a/14835682/497368
-            if (! document.addEventListener) {
+            if (!document.addEventListener) {
                 return;
             }
             try {
@@ -127,10 +127,10 @@
                 showCancelButton: true,
                 closeOnConfirm: false,
                 allowOutsideClick: true,
-            }).then(function() {
+            }).then(function () {
                 successCallback();
                 swal.close();
-            }).catch(function() {
+            }).catch(function () {
                 if (cancelCallback) {
                     cancelCallback();
                 }
@@ -139,7 +139,7 @@
 
         function showPasswordStrength(password, score) {
             if (password) {
-                var str = {!! json_encode(trans('texts.password_strength')) !!} + ': ';
+                var str = {!! json_encode(trans('texts.password_strength')) !!} +': ';
                 if (password.length < 8 || score < 50) {
                     str += {!! json_encode(trans('texts.strength_weak')) !!};
                 } else if (score < 75) {
@@ -175,12 +175,12 @@
         @if (env('FACEBOOK_PIXEL'))
         <!-- Facebook Pixel Code -->
         !function (f, b, e, v, n, t, s) {
-            if (f.fbq)return;
+            if (f.fbq) return;
             n = f.fbq = function () {
                 n.callMethod ?
-                        n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
             };
-            if (!f._fbq)f._fbq = n;
+            if (!f._fbq) f._fbq = n;
             n.push = n;
             n.loaded = !0;
             n.version = '2.0';
@@ -191,7 +191,7 @@
             s = b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t, s)
         }(window,
-                document, 'script', '//connect.facebook.net/en_US/fbevents.js');
+            document, 'script', '//connect.facebook.net/en_US/fbevents.js');
 
         fbq('init', '{{ env('FACEBOOK_PIXEL') }}');
         fbq('track', "PageView");
@@ -215,34 +215,35 @@
         ;
         @endif
 
-                window._fbq = window._fbq || [];
+            window._fbq = window._fbq || [];
 
     </script>
 
     <link rel="stylesheet" type="text/css" href="{{ asset('css/cookieconsent.min.css') }}"/>
     <script src="{{ asset('js/cookieconsent.min.js') }}"></script>
     <script>
-    window.addEventListener("load", function(){
-        if (! window.cookieconsent) {
-            return;
-        }
-        window.cookieconsent.initialise({
-            "palette": {
-                "popup": {
-                    "background": "#000"
-                },
-                "button": {
-                    "background": "#f1d600"
-                },
-            },
-            "content": {
-                "href": "{{ Utils::isNinja() ? config('ninja.privacy_policy_url.hosted') : 'https://cookiesandyou.com/' }}",
-                "message": {!! json_encode(trans('texts.cookie_message')) !!},
-                "dismiss": {!! json_encode(trans('texts.got_it')) !!},
-                "link": {!! json_encode(trans('texts.learn_more')) !!},
+        window.addEventListener("load", function () {
+                if (!window.cookieconsent) {
+                    return;
+                }
+                window.cookieconsent.initialise({
+                    "palette": {
+                        "popup": {
+                            "background": "#000"
+                        },
+                        "button": {
+                            "background": "#f1d600"
+                        },
+                    },
+                    "content": {
+                        "href": "{{ Utils::isNinja() ? config('ninja.privacy_policy_url.hosted') : 'https://cookiesandyou.com/' }}",
+                        "message": {!! json_encode(trans('texts.cookie_message')) !!},
+                        "dismiss": {!! json_encode(trans('texts.got_it')) !!},
+                        "link": {!! json_encode(trans('texts.learn_more')) !!},
+                    }
+                })
             }
-        })}
-    );
+        );
     </script>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -267,10 +268,10 @@
         (function (i, s, o, g, r, a, m) {
             i['GoogleAnalyticsObject'] = r;
             i[r] = i[r] || function () {
-                        (i[r].q = i[r].q || []).push(arguments)
-                    }, i[r].l = 1 * new Date();
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
             a = s.createElement(o),
-                    m = s.getElementsByTagName(o)[0];
+                m = s.getElementsByTagName(o)[0];
             a.async = 1;
             a.src = g;
             m.parentNode.insertBefore(a, m)
@@ -280,9 +281,10 @@
         ga('set', 'anonymizeIp', true);
 
         @if (request()->invitation_key || request()->proposal_invitation_key || request()->contact_key)
-            ga('send', 'pageview', { 'page': '/client/portal' });
+        ga('send', 'pageview', {'page': '/client/portal'});
         @else
-            ga('send', 'pageview');
+        ga('send', 'pageview');
+
         @endif
 
         function trackEvent(category, action) {
@@ -313,9 +315,9 @@
         });
 
         @if (Session::has('trackEventCategory') && Session::has('trackEventAction'))
-            @if (Session::get('trackEventAction') === '/buy_pro_plan')
-                fbq('track', 'Purchase', {value: '{{ session('trackEventAmount') }}', currency: 'USD'});
-            @endif
+        @if (Session::get('trackEventAction') === '/buy_pro_plan')
+        fbq('track', 'Purchase', {value: '{{ session('trackEventAmount') }}', currency: 'USD'});
+        @endif
         @endif
 
         $('[data-toggle="tooltip"]').tooltip();
@@ -334,6 +336,7 @@
             return undefined;
         }
     });
+
     function openUrl(url, track) {
         trackEvent('/view_link', track ? track : url);
         window.open(url, '_blank');

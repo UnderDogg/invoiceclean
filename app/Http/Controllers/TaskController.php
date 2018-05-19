@@ -51,9 +51,9 @@ class TaskController extends BaseController
     /**
      * TaskController constructor.
      *
-     * @param TaskRepository    $taskRepo
+     * @param TaskRepository $taskRepo
      * @param InvoiceRepository $invoiceRepo
-     * @param TaskService       $taskService
+     * @param TaskService $taskService
      */
     public function __construct(
         TaskRepository $taskRepo,
@@ -99,127 +99,6 @@ class TaskController extends BaseController
     public function store(CreateTaskRequest $request)
     {
         return $this->save($request);
-    }
-
-    /**
-     * @param $publicId
-     *
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function show($publicId)
-    {
-        Session::reflash();
-
-        return Redirect::to("tasks/{$publicId}/edit");
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @param TaskRequest $request
-     *
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function create(TaskRequest $request)
-    {
-        $this->checkTimezone();
-
-        $data = [
-            'task' => null,
-            'clientPublicId' => Input::old('client') ? Input::old('client') : ($request->client_id ?: 0),
-            'projectPublicId' => Input::old('project_id') ? Input::old('project_id') : ($request->project_id ?: 0),
-            'method' => 'POST',
-            'url' => 'tasks',
-            'title' => trans('texts.new_task'),
-            'timezone' => Auth::user()->account->timezone ? Auth::user()->account->timezone->name : DEFAULT_TIMEZONE,
-            'datetimeFormat' => Auth::user()->account->getMomentDateTimeFormat(),
-        ];
-
-        $data = array_merge($data, self::getViewModel());
-
-        return View::make('tasks.edit', $data);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param TaskRequest $request
-     *
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function edit(TaskRequest $request)
-    {
-        $this->checkTimezone();
-        $task = $request->entity();
-
-        if (! $task) {
-            return redirect('/');
-        }
-
-        $actions = [];
-        if ($task->invoice) {
-            $actions[] = ['url' => URL::to("invoices/{$task->invoice->public_id}/edit"), 'label' => trans('texts.view_invoice')];
-        } else {
-            $actions[] = ['url' => 'javascript:submitAction("invoice")', 'label' => trans('texts.invoice_task')];
-
-            // check for any open invoices
-            $invoices = $task->client_id ? $this->invoiceRepo->findOpenInvoices($task->client_id) : [];
-
-            foreach ($invoices as $invoice) {
-                $actions[] = ['url' => 'javascript:submitAction("add_to_invoice", '.$invoice->public_id.')', 'label' => trans('texts.add_to_invoice', ['invoice' => e($invoice->invoice_number)])];
-            }
-        }
-
-        $actions[] = DropdownButton::DIVIDER;
-        if (! $task->trashed()) {
-            $actions[] = ['url' => 'javascript:submitAction("archive")', 'label' => trans('texts.archive_task')];
-            $actions[] = ['url' => 'javascript:onDeleteClick()', 'label' => trans('texts.delete_task')];
-        } else {
-            $actions[] = ['url' => 'javascript:submitAction("restore")', 'label' => trans('texts.restore_task')];
-        }
-
-        $data = [
-            'task' => $task,
-            'entity' => $task,
-            'clientPublicId' => $task->client ? $task->client->public_id : 0,
-            'projectPublicId' => $task->project ? $task->project->public_id : 0,
-            'method' => 'PUT',
-            'url' => 'tasks/'.$task->public_id,
-            'title' => trans('texts.edit_task'),
-            'actions' => $actions,
-            'timezone' => Auth::user()->account->timezone ? Auth::user()->account->timezone->name : DEFAULT_TIMEZONE,
-            'datetimeFormat' => Auth::user()->account->getMomentDateTimeFormat(),
-        ];
-
-        $data = array_merge($data, self::getViewModel($task));
-
-        return View::make('tasks.edit', $data);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param UpdateTaskRequest $request
-     *
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(UpdateTaskRequest $request)
-    {
-        $task = $request->entity();
-
-        return $this->save($request, $task->public_id);
-    }
-
-    /**
-     * @return array
-     */
-    private static function getViewModel($task = false)
-    {
-        return [
-            'clients' => Client::scope()->withActiveOrSelected($task ? $task->client_id : false)->with('contacts')->orderBy('name')->get(),
-            'account' => Auth::user()->account,
-            'projects' => Project::scope()->withActiveOrSelected($task ? $task->project_id : false)->with('client.contacts')->orderBy('name')->get(),
-        ];
     }
 
     /**
@@ -288,7 +167,7 @@ class TaskController extends BaseController
                         return redirect($referer)->withError(trans('texts.client_must_be_active'));
                     }
 
-                    if (! $clientPublicId) {
+                    if (!$clientPublicId) {
                         $clientPublicId = $task->client->public_id;
                     } elseif ($clientPublicId != $task->client->public_id) {
                         return redirect($referer)->withError(trans('texts.task_error_multiple_clients'));
@@ -324,7 +203,7 @@ class TaskController extends BaseController
             if (request()->wantsJson()) {
                 return response()->json($count);
             } else {
-                $message = Utils::pluralize($action.'d_task', $count);
+                $message = Utils::pluralize($action . 'd_task', $count);
                 Session::flash('message', $message);
 
                 return $this->returnBulk($this->entityType, $action, $ids);
@@ -332,11 +211,139 @@ class TaskController extends BaseController
         }
     }
 
+    /**
+     * @param $publicId
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function show($publicId)
+    {
+        Session::reflash();
+
+        return Redirect::to("tasks/{$publicId}/edit");
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @param TaskRequest $request
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function create(TaskRequest $request)
+    {
+        $this->checkTimezone();
+
+        $data = [
+            'task' => null,
+            'clientPublicId' => Input::old('client') ? Input::old('client') : ($request->client_id ?: 0),
+            'projectPublicId' => Input::old('project_id') ? Input::old('project_id') : ($request->project_id ?: 0),
+            'method' => 'POST',
+            'url' => 'tasks',
+            'title' => trans('texts.new_task'),
+            'timezone' => Auth::user()->account->timezone ? Auth::user()->account->timezone->name : DEFAULT_TIMEZONE,
+            'datetimeFormat' => Auth::user()->account->getMomentDateTimeFormat(),
+        ];
+
+        $data = array_merge($data, self::getViewModel());
+
+        return View::make('tasks.edit', $data);
+    }
+
     private function checkTimezone()
     {
-        if (! Auth::user()->account->timezone) {
-            $link = link_to('/settings/localization?focus=timezone_id', trans('texts.click_here'), ['target' => '_blank']);
+        if (!Auth::user()->account->timezone) {
+            $link = link_to('/settings/localization?focus=timezone_id', trans('texts.click_here'),
+                ['target' => '_blank']);
             Session::now('warning', trans('texts.timezone_unset', ['link' => $link]));
         }
+    }
+
+    /**
+     * @return array
+     */
+    private static function getViewModel($task = false)
+    {
+        return [
+            'clients' => Client::scope()->withActiveOrSelected($task ? $task->client_id : false)->with('contacts')->orderBy('name')->get(),
+            'account' => Auth::user()->account,
+            'projects' => Project::scope()->withActiveOrSelected($task ? $task->project_id : false)->with('client.contacts')->orderBy('name')->get(),
+        ];
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param TaskRequest $request
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function edit(TaskRequest $request)
+    {
+        $this->checkTimezone();
+        $task = $request->entity();
+
+        if (!$task) {
+            return redirect('/');
+        }
+
+        $actions = [];
+        if ($task->invoice) {
+            $actions[] = [
+                'url' => URL::to("invoices/{$task->invoice->public_id}/edit"),
+                'label' => trans('texts.view_invoice')
+            ];
+        } else {
+            $actions[] = ['url' => 'javascript:submitAction("invoice")', 'label' => trans('texts.invoice_task')];
+
+            // check for any open invoices
+            $invoices = $task->client_id ? $this->invoiceRepo->findOpenInvoices($task->client_id) : [];
+
+            foreach ($invoices as $invoice) {
+                $actions[] = [
+                    'url' => 'javascript:submitAction("add_to_invoice", ' . $invoice->public_id . ')',
+                    'label' => trans('texts.add_to_invoice', ['invoice' => e($invoice->invoice_number)])
+                ];
+            }
+        }
+
+        $actions[] = DropdownButton::DIVIDER;
+        if (!$task->trashed()) {
+            $actions[] = ['url' => 'javascript:submitAction("archive")', 'label' => trans('texts.archive_task')];
+            $actions[] = ['url' => 'javascript:onDeleteClick()', 'label' => trans('texts.delete_task')];
+        } else {
+            $actions[] = ['url' => 'javascript:submitAction("restore")', 'label' => trans('texts.restore_task')];
+        }
+
+        $data = [
+            'task' => $task,
+            'entity' => $task,
+            'clientPublicId' => $task->client ? $task->client->public_id : 0,
+            'projectPublicId' => $task->project ? $task->project->public_id : 0,
+            'method' => 'PUT',
+            'url' => 'tasks/' . $task->public_id,
+            'title' => trans('texts.edit_task'),
+            'actions' => $actions,
+            'timezone' => Auth::user()->account->timezone ? Auth::user()->account->timezone->name : DEFAULT_TIMEZONE,
+            'datetimeFormat' => Auth::user()->account->getMomentDateTimeFormat(),
+        ];
+
+        $data = array_merge($data, self::getViewModel($task));
+
+        return View::make('tasks.edit', $data);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param UpdateTaskRequest $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(UpdateTaskRequest $request)
+    {
+        $task = $request->entity();
+
+        return $this->save($request, $task->public_id);
     }
 }

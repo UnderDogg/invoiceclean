@@ -10,12 +10,12 @@ use App\Models\User;
 class UserMailer extends Mailer
 {
     /**
-     * @param User      $user
+     * @param User $user
      * @param User|null $invitor
      */
     public function sendConfirmation(User $user, User $invitor = null)
     {
-        if (! $user->email) {
+        if (!$user->email) {
             return;
         }
 
@@ -24,7 +24,8 @@ class UserMailer extends Mailer
 
         $data = [
             'user' => $user,
-            'invitationMessage' => $invitor ? trans('texts.invitation_message', ['invitor' => $invitor->getDisplayName()]) : '',
+            'invitationMessage' => $invitor ? trans('texts.invitation_message',
+                ['invitor' => $invitor->getDisplayName()]) : '',
         ];
 
         if ($invitor) {
@@ -39,7 +40,7 @@ class UserMailer extends Mailer
     }
 
     /**
-     * @param User      $user
+     * @param User $user
      * @param User|null $invitor
      */
     public function sendEmailChanged(User $user)
@@ -47,7 +48,7 @@ class UserMailer extends Mailer
         $oldEmail = $user->getOriginal('email');
         $newEmail = $user->email;
 
-        if (! $oldEmail || ! $newEmail) {
+        if (!$oldEmail || !$newEmail) {
             return;
         }
 
@@ -57,14 +58,15 @@ class UserMailer extends Mailer
         $data = [
             'user' => $user,
             'userName' => $user->getDisplayName(),
-            'primaryMessage' => trans('texts.email_address_changed_message', ['old_email' => $oldEmail, 'new_email' => $newEmail]),
+            'primaryMessage' => trans('texts.email_address_changed_message',
+                ['old_email' => $oldEmail, 'new_email' => $newEmail]),
         ];
 
         $this->sendTo($oldEmail, CONTACT_EMAIL, CONTACT_NAME, $subject, $view, $data);
     }
 
     /**
-     * @param User    $user
+     * @param User $user
      * @param Invoice $invoice
      * @param $notificationType
      * @param Payment|null $payment
@@ -76,7 +78,7 @@ class UserMailer extends Mailer
         Payment $payment = null,
         $notes = false
     ) {
-        if (! $user->shouldNotify($invoice)) {
+        if (!$user->shouldNotify($invoice)) {
             return;
         }
 
@@ -124,7 +126,7 @@ class UserMailer extends Mailer
         $invoice = $invitation->invoice;
         $entityType = $invoice->getEntityType();
 
-        if (! $user->email) {
+        if (!$user->email) {
             return;
         }
 
@@ -146,7 +148,7 @@ class UserMailer extends Mailer
      */
     public function sendMessage($user, $subject, $message, $data = false)
     {
-        if (! $user->email) {
+        if (!$user->email) {
             return;
         }
 
@@ -166,7 +168,7 @@ class UserMailer extends Mailer
 
     public function sendSecurityCode($user, $code)
     {
-        if (! $user->email) {
+        if (!$user->email) {
             return;
         }
 
@@ -182,7 +184,7 @@ class UserMailer extends Mailer
 
     public function sendPasswordReset($user, $token)
     {
-        if (! $user->email) {
+        if (!$user->email) {
             return;
         }
 
@@ -200,7 +202,7 @@ class UserMailer extends Mailer
         $user = $scheduledReport->user;
         $config = json_decode($scheduledReport->config);
 
-        if (! $user->email) {
+        if (!$user->email) {
             return;
         }
 
@@ -208,11 +210,14 @@ class UserMailer extends Mailer
         $view = 'user_message';
         $data = [
             'userName' => $user->getDisplayName(),
-            'primaryMessage' => trans('texts.scheduled_report_attached', ['type' => trans('texts.' . $config->report_type)]),
-            'documents' => [[
-                'name' => $file->filename . '.' . $config->export_format,
-                'data' =>  $file->string($config->export_format),
-            ]]
+            'primaryMessage' => trans('texts.scheduled_report_attached',
+                ['type' => trans('texts.' . $config->report_type)]),
+            'documents' => [
+                [
+                    'name' => $file->filename . '.' . $config->export_format,
+                    'data' => $file->string($config->export_format),
+                ]
+            ]
         ];
 
         $this->sendTo($user->email, CONTACT_EMAIL, CONTACT_NAME, $subject, $view, $data);

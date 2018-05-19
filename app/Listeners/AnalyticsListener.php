@@ -31,7 +31,7 @@ class AnalyticsListener
             }
         }
 
-        if (! $analyticsId) {
+        if (!$analyticsId) {
             return;
         }
 

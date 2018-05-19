@@ -13,18 +13,25 @@ class EntityPolicy
     use HandlesAuthorization;
 
     /**
-     * @param User  $user
+     * @param User $user
      * @param mixed $item
      *
      * @return bool
      */
     public static function create(User $user, $item)
     {
-        if (! static::checkModuleEnabled($user, $item)) {
+        if (!static::checkModuleEnabled($user, $item)) {
             return false;
         }
 
         return $user->hasPermission('create_all');
+    }
+
+    private static function checkModuleEnabled(User $user, $item)
+    {
+        $entityType = is_string($item) ? $item : $item->getEntityType();
+
+        return $user->account->isModuleEnabled($entityType);
     }
 
     /**
@@ -35,7 +42,7 @@ class EntityPolicy
      */
     public static function edit(User $user, $item)
     {
-        if (! static::checkModuleEnabled($user, $item)) {
+        if (!static::checkModuleEnabled($user, $item)) {
             return false;
         }
 
@@ -50,7 +57,7 @@ class EntityPolicy
      */
     public static function view(User $user, $item)
     {
-        if (! static::checkModuleEnabled($user, $item)) {
+        if (!static::checkModuleEnabled($user, $item)) {
             return false;
         }
 
@@ -77,12 +84,5 @@ class EntityPolicy
     public static function editByOwner(User $user, $ownerUserId)
     {
         return $user->hasPermission('edit_all') || $user->id == $ownerUserId;
-    }
-
-    private static function checkModuleEnabled(User $user, $item)
-    {
-        $entityType = is_string($item) ? $item : $item->getEntityType();
-        
-        return $user->account->isModuleEnabled($entityType);
     }
 }

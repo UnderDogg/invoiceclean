@@ -13,14 +13,6 @@ class BaseService
     use DispatchesJobs;
 
     /**
-     * @return null
-     */
-    protected function getRepo()
-    {
-        return null;
-    }
-
-    /**
      * @param $ids
      * @param $action
      *
@@ -28,7 +20,7 @@ class BaseService
      */
     public function bulk($ids, $action)
     {
-        if (! $ids) {
+        if (!$ids) {
             return 0;
         }
 
@@ -41,5 +33,13 @@ class BaseService
         }
 
         return count($entities);
+    }
+
+    /**
+     * @return null
+     */
+    protected function getRepo()
+    {
+        return null;
     }
 }

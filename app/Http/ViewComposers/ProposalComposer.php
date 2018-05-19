@@ -2,9 +2,9 @@
 
 namespace App\Http\ViewComposers;
 
-use Illuminate\View\View;
-use App\Models\ProposalSnippet;
 use App\Models\Document;
+use App\Models\ProposalSnippet;
+use Illuminate\View\View;
 
 /**
  * ClientPortalHeaderComposer.php.

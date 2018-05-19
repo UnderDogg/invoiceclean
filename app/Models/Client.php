@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-use Carbon;
+use App\Models\Traits\HasCustomMessages;
 use DB;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laracasts\Presenter\PresentableTrait;
-use App\Models\Traits\HasCustomMessages;
 use Utils;
 
 /**
@@ -143,14 +142,6 @@ class Client extends EntityModel
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function invoices()
-    {
-        return $this->hasMany('App\Models\Invoice');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function quotes()
     {
         return $this->hasMany('App\Models\Invoice')->where('invoice_type_id', '=', INVOICE_TYPE_QUOTE);
@@ -161,7 +152,8 @@ class Client extends EntityModel
      */
     public function publicQuotes()
     {
-        return $this->hasMany('App\Models\Invoice')->where('invoice_type_id', '=', INVOICE_TYPE_QUOTE)->whereIsPublic(true);
+        return $this->hasMany('App\Models\Invoice')->where('invoice_type_id', '=',
+            INVOICE_TYPE_QUOTE)->whereIsPublic(true);
     }
 
     /**
@@ -170,14 +162,6 @@ class Client extends EntityModel
     public function payments()
     {
         return $this->hasMany('App\Models\Payment');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function contacts()
-    {
-        return $this->hasMany('App\Models\Contact');
     }
 
     /**
@@ -264,7 +248,7 @@ class Client extends EntityModel
 
         // check if this client wasRecentlyCreated to ensure a new contact is
         // always created even if the request includes a contact id
-        if (! $this->wasRecentlyCreated && $publicId && $publicId != '-1') {
+        if (!$this->wasRecentlyCreated && $publicId && $publicId != '-1') {
             $contact = Contact::scope($publicId)->whereClientId($this->id)->firstOrFail();
         } else {
             $contact = Contact::createNew();
@@ -278,7 +262,7 @@ class Client extends EntityModel
         }
 
         if ($this->account->isClientPortalPasswordEnabled()) {
-            if (! empty($data['password']) && $data['password'] != '-%unchanged%-') {
+            if (!empty($data['password']) && $data['password'] != '-%unchanged%-') {
                 $contact->password = bcrypt($data['password']);
             } elseif (empty($data['password'])) {
                 $contact->password = null;
@@ -290,6 +274,14 @@ class Client extends EntityModel
         $contact->email = trim($contact->email);
 
         return $this->contacts()->save($contact);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function contacts()
+    {
+        return $this->hasMany('App\Models\Contact');
     }
 
     /**
@@ -322,9 +314,9 @@ class Client extends EntityModel
     public function getTotalCredit()
     {
         return DB::table('credits')
-                ->where('client_id', '=', $this->id)
-                ->whereNull('deleted_at')
-                ->sum('balance');
+            ->where('client_id', '=', $this->id)
+            ->whereNull('deleted_at')
+            ->sum('balance');
     }
 
     /**
@@ -336,11 +328,25 @@ class Client extends EntityModel
     }
 
     /**
+     * @return mixed|string
+     */
+    public function getDisplayName()
+    {
+        if ($this->name) {
+            return $this->name;
+        } else {
+            if ($contact = $this->getPrimaryContact()) {
+                return $contact->getDisplayName();
+            }
+        }
+    }
+
+    /**
      * @return mixed
      */
     public function getPrimaryContact()
     {
-        if (! $this->relationLoaded('contacts')) {
+        if (!$this->relationLoaded('contacts')) {
             $this->load('contacts');
         }
 
@@ -351,18 +357,6 @@ class Client extends EntityModel
         }
 
         return false;
-    }
-
-    /**
-     * @return mixed|string
-     */
-    public function getDisplayName()
-    {
-        if ($this->name) {
-            return $this->name;
-        } else if ($contact = $this->getPrimaryContact()) {
-            return $contact->getDisplayName();
-        }
     }
 
     /**
@@ -394,29 +388,6 @@ class Client extends EntityModel
     /**
      * @return bool
      */
-    public function addressesMatch()
-    {
-        $fields = [
-            'address1',
-            'address2',
-            'city',
-            'state',
-            'postal_code',
-            'country_id',
-        ];
-
-        foreach ($fields as $field) {
-            if ($this->$field != $this->{'shipping_' . $field}) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
     public function hasAddress($shipping = false)
     {
         $fields = [
@@ -441,6 +412,29 @@ class Client extends EntityModel
     }
 
     /**
+     * @return bool
+     */
+    public function addressesMatch()
+    {
+        $fields = [
+            'address1',
+            'address2',
+            'city',
+            'state',
+            'postal_code',
+            'country_id',
+        ];
+
+        foreach ($fields as $field) {
+            if ($this->$field != $this->{'shipping_' . $field}) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @return string
      */
     public function getDateCreated()
@@ -455,20 +449,6 @@ class Client extends EntityModel
     /**
      * @return bool
      */
-    public function getGatewayToken()
-    {
-        $accountGateway = $this->account->getGatewayByType(GATEWAY_TYPE_TOKEN);
-
-        if (! $accountGateway) {
-            return false;
-        }
-
-        return AccountGatewayToken::clientAndGateway($this->id, $accountGateway->id)->first();
-    }
-
-    /**
-     * @return bool
-     */
     public function defaultPaymentMethod()
     {
         if ($token = $this->getGatewayToken()) {
@@ -476,6 +456,20 @@ class Client extends EntityModel
         }
 
         return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getGatewayToken()
+    {
+        $accountGateway = $this->account->getGatewayByType(GATEWAY_TYPE_TOKEN);
+
+        if (!$accountGateway) {
+            return false;
+        }
+
+        return AccountGatewayToken::clientAndGateway($this->id, $accountGateway->id)->first();
     }
 
     /**
@@ -511,7 +505,7 @@ class Client extends EntityModel
             return $this->currency_id;
         }
 
-        if (! $this->account) {
+        if (!$this->account) {
             $this->load('account');
         }
 
@@ -527,7 +521,7 @@ class Client extends EntityModel
             return $this->currency->code;
         }
 
-        if (! $this->account) {
+        if (!$this->account) {
             $this->load('account');
         }
 
@@ -540,13 +534,12 @@ class Client extends EntityModel
             return $country->iso_3166_2;
         }
 
-        if (! $this->account) {
+        if (!$this->account) {
             $this->load('account');
         }
 
         return $this->account->country ? $this->account->country->iso_3166_2 : 'US';
     }
-
 
     /**
      * @param $isQuote
@@ -569,7 +562,16 @@ class Client extends EntityModel
      */
     public function hasAutoBillConfigurableInvoices()
     {
-        return $this->invoices()->whereIsPublic(true)->whereIn('auto_bill', [AUTO_BILL_OPT_IN, AUTO_BILL_OPT_OUT])->count() > 0;
+        return $this->invoices()->whereIsPublic(true)->whereIn('auto_bill',
+                [AUTO_BILL_OPT_IN, AUTO_BILL_OPT_OUT])->count() > 0;
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function invoices()
+    {
+        return $this->hasMany('App\Models\Invoice');
     }
 
     /**

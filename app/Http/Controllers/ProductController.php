@@ -94,18 +94,18 @@ class ProductController extends BaseController
             $url = 'products';
             $method = 'POST';
         } else {
-            $url = 'products/'.$publicId;
+            $url = 'products/' . $publicId;
             $method = 'PUT';
         }
 
         $data = [
-          'account' => $account,
-          'taxRates' => $account->invoice_item_taxes ? TaxRate::scope()->whereIsInclusive(false)->get() : null,
-          'product' => $product,
-          'entity' => $product,
-          'method' => $method,
-          'url' => $url,
-          'title' => trans('texts.edit_product'),
+            'account' => $account,
+            'taxRates' => $account->invoice_item_taxes ? TaxRate::scope()->whereIsInclusive(false)->get() : null,
+            'product' => $product,
+            'entity' => $product,
+            'method' => $method,
+            'url' => $url,
+            'title' => trans('texts.edit_product'),
         ];
 
         return View::make('accounts.product', $data);
@@ -119,12 +119,16 @@ class ProductController extends BaseController
         $account = Auth::user()->account;
 
         $data = [
-          'account' => $account,
-          'taxRates' => $account->invoice_item_taxes ? TaxRate::scope()->whereIsInclusive(false)->get(['id', 'name', 'rate']) : null,
-          'product' => null,
-          'method' => 'POST',
-          'url' => 'products',
-          'title' => trans('texts.create_product'),
+            'account' => $account,
+            'taxRates' => $account->invoice_item_taxes ? TaxRate::scope()->whereIsInclusive(false)->get([
+                'id',
+                'name',
+                'rate'
+            ]) : null,
+            'product' => null,
+            'method' => 'POST',
+            'url' => 'products',
+            'title' => trans('texts.create_product'),
         ];
 
         return View::make('accounts.product', $data);
@@ -136,16 +140,6 @@ class ProductController extends BaseController
     public function store()
     {
         return $this->save();
-    }
-
-    /**
-     * @param $publicId
-     *
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update($publicId)
-    {
-        return $this->save($publicId);
     }
 
     /**
@@ -197,9 +191,19 @@ class ProductController extends BaseController
             $count = $this->productService->bulk($ids, $action);
         }
 
-        $message = Utils::pluralize($action.'d_product', $count);
+        $message = Utils::pluralize($action . 'd_product', $count);
         Session::flash('message', $message);
 
         return $this->returnBulk(ENTITY_PRODUCT, $action, $ids);
+    }
+
+    /**
+     * @param $publicId
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update($publicId)
+    {
+        return $this->save($publicId);
     }
 }

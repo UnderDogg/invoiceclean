@@ -2,11 +2,10 @@
 
 namespace App\Listeners;
 
-use Illuminate\Queue\Events\JobExceptionOccurred;
 use App\Events\InvoiceInvitationWasViewed;
 use App\Events\InvoiceWasCreated;
-use App\Events\InvoiceWasUpdated;
 use App\Events\InvoiceWasEmailed;
+use App\Events\InvoiceWasUpdated;
 use App\Events\PaymentFailed;
 use App\Events\PaymentWasCreated;
 use App\Events\PaymentWasDeleted;
@@ -15,6 +14,7 @@ use App\Events\PaymentWasRestored;
 use App\Events\PaymentWasVoided;
 use App\Models\Activity;
 use Auth;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Utils;
 
 /**
@@ -86,8 +86,8 @@ class InvoiceListener
 
         // store a backup of the invoice
         $activity = Activity::wherePaymentId($payment->id)
-                        ->whereActivityTypeId(ACTIVITY_TYPE_CREATE_PAYMENT)
-                        ->first();
+            ->whereActivityTypeId(ACTIVITY_TYPE_CREATE_PAYMENT)
+            ->first();
         $activity->json_backup = $invoice->hidePrivateFields()->toJSON();
         $activity->save();
 
@@ -159,7 +159,7 @@ class InvoiceListener
      */
     public function restoredPayment(PaymentWasRestored $event)
     {
-        if (! $event->fromDeleted) {
+        if (!$event->fromDeleted) {
             return;
         }
 

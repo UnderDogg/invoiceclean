@@ -3,9 +3,9 @@
 namespace App\Ninja\Reports;
 
 use App\Models\Client;
+use App\Models\TaxRate;
 use Auth;
 use Barracuda\ArchiveStream\Archive;
-use App\Models\TaxRate;
 
 class InvoiceReport extends AbstractReport
 {
@@ -50,33 +50,41 @@ class InvoiceReport extends AbstractReport
         $hasTaxRates = TaxRate::scope()->count();
 
         $clients = Client::scope()
-                        ->orderBy('name')
+            ->orderBy('name')
+            ->withArchived()
+            ->with('contacts', 'user')
+            ->with([
+                'invoices' => function ($query) use ($statusIds) {
+                    $query->invoices()
                         ->withArchived()
-                        ->with('contacts', 'user')
-                        ->with(['invoices' => function ($query) use ($statusIds) {
-                            $query->invoices()
-                                  ->withArchived()
-                                  ->statusIds($statusIds)
-                                  ->where('invoice_date', '>=', $this->startDate)
-                                  ->where('invoice_date', '<=', $this->endDate)
-                                  ->with(['payments' => function ($query) {
-                                      $query->withArchived()
-                                              ->excludeFailed()
-                                              ->with('payment_type', 'account_gateway.gateway');
-                                  }, 'invoice_items', 'invoice_status']);
-                        }]);
+                        ->statusIds($statusIds)
+                        ->where('invoice_date', '>=', $this->startDate)
+                        ->where('invoice_date', '<=', $this->endDate)
+                        ->with([
+                            'payments' => function ($query) {
+                                $query->withArchived()
+                                    ->excludeFailed()
+                                    ->with('payment_type', 'account_gateway.gateway');
+                            },
+                            'invoice_items',
+                            'invoice_status'
+                        ]);
+                }
+            ]);
 
 
         if ($this->isExport && $exportFormat == 'zip') {
-            if (! extension_loaded('GMP')) {
+            if (!extension_loaded('GMP')) {
                 die(trans('texts.gmp_required'));
             }
 
-            $zip = Archive::instance_by_useragent(date('Y-m-d') . '_' . str_replace(' ', '_', trans('texts.invoice_documents')));
+            $zip = Archive::instance_by_useragent(date('Y-m-d') . '_' . str_replace(' ', '_',
+                    trans('texts.invoice_documents')));
             foreach ($clients->get() as $client) {
                 foreach ($client->invoices as $invoice) {
                     foreach ($invoice->documents as $document) {
-                        $name = sprintf('%s_%s_%s', $invoice->invoice_date ?: date('Y-m-d'), $invoice->present()->titledName, $document->name);
+                        $name = sprintf('%s_%s_%s', $invoice->invoice_date ?: date('Y-m-d'),
+                            $invoice->present()->titledName, $document->name);
                         $zip->add_file($name, $document->getRaw());
                     }
                 }

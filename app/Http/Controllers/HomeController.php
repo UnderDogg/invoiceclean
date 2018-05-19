@@ -43,7 +43,7 @@ class HomeController extends BaseController
     {
         Session::reflash();
 
-        if (! Utils::isNinja() && (! Utils::isDatabaseSetup() || Account::count() == 0)) {
+        if (!Utils::isNinja() && (!Utils::isDatabaseSetup() || Account::count() == 0)) {
             return Redirect::to('/setup');
         } elseif (Auth::check()) {
             return Redirect::to('/dashboard');
@@ -71,7 +71,8 @@ class HomeController extends BaseController
         }
 
         if (Auth::check()) {
-            $redirectTo = Input::get('redirect_to') ? SITE_URL . '/' . ltrim(Input::get('redirect_to'), '/') : 'invoices/create';
+            $redirectTo = Input::get('redirect_to') ? SITE_URL . '/' . ltrim(Input::get('redirect_to'),
+                    '/') : 'invoices/create';
             return Redirect::to($redirectTo)->with('sign_up', Input::get('sign_up'));
         } else {
             return View::make('public.invoice_now');
@@ -155,9 +156,9 @@ class HomeController extends BaseController
             }
             $subject .= date('M jS, g:ia');
             $message->to(env('CONTACT_EMAIL', 'contact@invoiceninja.com'))
-                    ->from(CONTACT_EMAIL, Auth::user()->present()->fullName)
-                    ->replyTo(Auth::user()->email, Auth::user()->present()->fullName)
-                    ->subject($subject);
+                ->from(CONTACT_EMAIL, Auth::user()->present()->fullName)
+                ->replyTo(Auth::user()->email, Auth::user()->present()->fullName)
+                ->subject($subject);
         });
 
         return RESULT_SUCCESS;

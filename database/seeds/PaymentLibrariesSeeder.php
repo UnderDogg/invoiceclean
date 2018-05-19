@@ -29,7 +29,12 @@ class PaymentLibrariesSeeder extends Seeder
             ['name' => 'PayPal Pro', 'provider' => 'PayPal_Pro'],
             ['name' => 'Pin', 'provider' => 'Pin'],
             ['name' => 'SagePay Direct', 'provider' => 'SagePay_Direct'],
-            ['name' => 'SagePay Server', 'provider' => 'SagePay_Server', 'is_offsite' => true, 'payment_library_id' => 2],
+            [
+                'name' => 'SagePay Server',
+                'provider' => 'SagePay_Server',
+                'is_offsite' => true,
+                'payment_library_id' => 2
+            ],
             ['name' => 'SecurePay DirectPost', 'provider' => 'SecurePay_DirectPost'],
             ['name' => 'Stripe', 'provider' => 'Stripe', 'sort_order' => 1],
             ['name' => 'TargetPay Direct eBanking', 'provider' => 'TargetPay_Directebanking'],
@@ -81,8 +86,8 @@ class PaymentLibrariesSeeder extends Seeder
 
         foreach ($gateways as $gateway) {
             $record = Gateway::whereName($gateway['name'])
-                        ->whereProvider($gateway['provider'])
-                        ->first();
+                ->whereProvider($gateway['provider'])
+                ->first();
             if ($record) {
                 $record->fill($gateway);
                 $record->save();

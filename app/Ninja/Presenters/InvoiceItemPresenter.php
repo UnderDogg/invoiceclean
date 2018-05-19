@@ -2,8 +2,8 @@
 
 namespace App\Ninja\Presenters;
 
-use Str;
 use stdClass;
+use Str;
 
 class InvoiceItemPresenter extends EntityPresenter
 {

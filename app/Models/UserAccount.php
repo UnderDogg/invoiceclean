@@ -16,12 +16,30 @@ class UserAccount extends Eloquent
 
     /**
      * @param $userId
+     */
+    public function setUserId($userId)
+    {
+        if (self::hasUserId($userId)) {
+            return;
+        }
+
+        for ($i = 1; $i <= 5; $i++) {
+            $field = "user_id{$i}";
+            if (!$this->$field) {
+                $this->$field = $userId;
+                break;
+            }
+        }
+    }
+
+    /**
+     * @param $userId
      *
      * @return bool
      */
     public function hasUserId($userId)
     {
-        if (! $userId) {
+        if (!$userId) {
             return false;
         }
 
@@ -38,27 +56,9 @@ class UserAccount extends Eloquent
     /**
      * @param $userId
      */
-    public function setUserId($userId)
-    {
-        if (self::hasUserId($userId)) {
-            return;
-        }
-
-        for ($i = 1; $i <= 5; $i++) {
-            $field = "user_id{$i}";
-            if (! $this->$field) {
-                $this->$field = $userId;
-                break;
-            }
-        }
-    }
-
-    /**
-     * @param $userId
-     */
     public function removeUserId($userId)
     {
-        if (! $userId || ! self::hasUserId($userId)) {
+        if (!$userId || !self::hasUserId($userId)) {
             return;
         }
 

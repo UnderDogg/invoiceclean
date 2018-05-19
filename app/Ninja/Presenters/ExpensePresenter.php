@@ -2,7 +2,6 @@
 
 namespace App\Ninja\Presenters;
 
-use Carbon;
 use Utils;
 
 /**
@@ -39,11 +38,6 @@ class ExpensePresenter extends EntityPresenter
         return Carbon::parse($this->entity->expense_date)->format('Y m');
     }
 
-    public function amount()
-    {
-        return Utils::formatMoney($this->entity->amountWithTax(), $this->entity->expense_currency_id);
-    }
-
     public function currencyCode()
     {
         return Utils::getFromCache($this->entity->expense_currency_id, 'currencies')->code;
@@ -54,14 +48,9 @@ class ExpensePresenter extends EntityPresenter
         return Utils::formatMoney($this->entity->taxAmount(), $this->entity->expense_currency_id);
     }
 
-    public function category()
-    {
-        return $this->entity->expense_category ? $this->entity->expense_category->name : '';
-    }
-
     public function payment_type()
     {
-        if (! $this->payment_type_id) {
+        if (!$this->payment_type_id) {
             return '';
         }
 
@@ -73,7 +62,7 @@ class ExpensePresenter extends EntityPresenter
         $data = parent::calendarEvent();
         $expense = $this->entity;
 
-        $data->title = trans('texts.expense')  . ' ' . $this->amount() . ' | ' . $this->category();
+        $data->title = trans('texts.expense') . ' ' . $this->amount() . ' | ' . $this->category();
 
         $data->title = trans('texts.expense') . ' ' . $this->amount();
         if ($category = $this->category()) {
@@ -93,5 +82,15 @@ class ExpensePresenter extends EntityPresenter
         }
 
         return $data;
+    }
+
+    public function amount()
+    {
+        return Utils::formatMoney($this->entity->amountWithTax(), $this->entity->expense_currency_id);
+    }
+
+    public function category()
+    {
+        return $this->entity->expense_category ? $this->entity->expense_category->name : '';
     }
 }

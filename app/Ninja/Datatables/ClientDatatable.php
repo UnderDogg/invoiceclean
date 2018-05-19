@@ -74,13 +74,15 @@ class ClientDatatable extends EntityDatatable
                 },
             ],
             [
-                '--divider--', function () {
+                '--divider--',
+                function () {
                     return false;
                 },
                 function ($model) {
                     $user = Auth::user();
 
-                    return $user->can('editByOwner', [ENTITY_CLIENT, $model->user_id]) && ($user->can('create', ENTITY_TASK) || $user->can('create', ENTITY_INVOICE));
+                    return $user->can('editByOwner', [ENTITY_CLIENT, $model->user_id]) && ($user->can('create',
+                                ENTITY_TASK) || $user->can('create', ENTITY_INVOICE));
                 },
             ],
             [
@@ -111,13 +113,16 @@ class ClientDatatable extends EntityDatatable
                 },
             ],
             [
-                '--divider--', function () {
+                '--divider--',
+                function () {
                     return false;
                 },
                 function ($model) {
                     $user = Auth::user();
 
-                    return ($user->can('create', ENTITY_TASK) || $user->can('create', ENTITY_INVOICE)) && ($user->can('create', ENTITY_PAYMENT) || $user->can('create', ENTITY_CREDIT) || $user->can('create', ENTITY_EXPENSE));
+                    return ($user->can('create', ENTITY_TASK) || $user->can('create',
+                                ENTITY_INVOICE)) && ($user->can('create', ENTITY_PAYMENT) || $user->can('create',
+                                ENTITY_CREDIT) || $user->can('create', ENTITY_EXPENSE));
                 },
             ],
             [

@@ -23,7 +23,7 @@ class CreatePaymentAPIRequest extends PaymentRequest
      */
     public function rules()
     {
-        if (! $this->invoice_id || ! $this->amount) {
+        if (!$this->invoice_id || !$this->amount) {
             return [
                 'invoice_id' => 'required|numeric|min:1',
                 'amount' => 'required|numeric',
@@ -35,7 +35,7 @@ class CreatePaymentAPIRequest extends PaymentRequest
             ->invoices()
             ->first();
 
-        if (! $this->invoice) {
+        if (!$this->invoice) {
             abort(404, 'Invoice was not found');
         }
 
